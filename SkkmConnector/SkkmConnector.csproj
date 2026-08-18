@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>SkkmConnector</RootNamespace>
+    <AssemblyTitle>Коннектор Сервера ККМ</AssemblyTitle>
+    <Description>Коннектор Сервера ККМ. Заполняются свойства, вызываются методы, обмен с кассой скрыт внутри.</Description>
+    <IsPackable>true</IsPackable>
+    <PackageId>SkkmConnector</PackageId>
+    <Version>1.1.1</Version>
+    <Authors>ООО РБ-Софт</Authors>
+    <Company>ООО РБ-Софт</Company>
+    <PackageTags>kkm;skkm;fiscal</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+</Project>
