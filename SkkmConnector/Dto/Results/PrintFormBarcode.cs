@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Штрихкод в печатной форме (Barcode).
+/// Штрихкод в печатной форме
 /// </summary>
 public sealed class PrintFormBarcode
 {

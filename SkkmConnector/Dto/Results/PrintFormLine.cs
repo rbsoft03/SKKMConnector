@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Строка печатной формы (PrintLine) после GET task/form.
+/// Строка печатной формы 
 /// </summary>
 public sealed class PrintFormLine
 {

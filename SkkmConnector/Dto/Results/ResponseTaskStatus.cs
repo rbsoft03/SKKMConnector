@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// ResponseGetStatus — статус задания (GET task/status) по docId из ответа POST.
+/// Статус задания
 /// </summary>
 public sealed class ResponseTaskStatus
 {

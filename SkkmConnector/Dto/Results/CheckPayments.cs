@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Оплаты из ответа сервера (Payments). Имена полей — как в сохранённом документе, не как во входном <see cref="Payments"/>.
+/// Оплаты из ответа сервера (Payments)
 /// </summary>
 public sealed class CheckPayments
 {

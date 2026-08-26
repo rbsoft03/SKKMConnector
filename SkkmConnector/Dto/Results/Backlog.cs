@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Данные о непереданных документах (Backlog).
+    /// Данные о непереданных документах
     /// </summary>
     public class Backlog
     {

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Описание драйвера ККМ (DriverInfo).
+    /// Описание драйвера ККМ 
     /// </summary>
     public class Driver
     {

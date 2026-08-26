@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Разбивка суммы операций по видам оплаты (наличные, безналичные, аванс, кредит, встречное предоставление).
+    /// Разбивка суммы операций по видам оплаты 
     /// </summary>
     public class DocDataPayments
     {
@@ -14,31 +14,31 @@ namespace SkkmConnector
         public decimal Sum { get; set; }
 
         /// <summary>
-        /// Оплачено наличными.
+        /// Наличные
         /// </summary>
         [JsonPropertyName("Cash")]
         public decimal Cash { get; set; }
 
         /// <summary>
-        /// Оплачено безналичными.
+        /// Безналичные
         /// </summary>
         [JsonPropertyName("Electronically")]
         public decimal Electronically { get; set; }
 
         /// <summary>
-        /// Оплачено авансом (предоплата).
+        /// Аванс (предоплата).
         /// </summary>
         [JsonPropertyName("Prepaid")]
         public decimal Prepaid { get; set; }
 
         /// <summary>
-        /// Оплачено в кредит (постоплата).
+        /// Кредит (постоплата).
         /// </summary>
         [JsonPropertyName("Credit")]
         public decimal Credit { get; set; }
 
         /// <summary>
-        /// Оплачено встречным предоставлением (бартер).
+        /// Встречные предоставления (бартер).
         /// </summary>
         [JsonPropertyName("Barter")]
         public decimal Barter { get; set; }

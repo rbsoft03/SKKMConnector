@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Счётчик скидок или надбавок: количество операций и их сумма.
+    /// Счётчик скидок или надбавок
     /// </summary>
     public class RegData
     {

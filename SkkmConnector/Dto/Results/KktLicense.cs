@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Лицензия ККТ (одна запись из массива лицензий устройства).
+    /// Лицензия ККТ 
     /// </summary>
     public class KktLicense
     {
@@ -33,7 +33,7 @@ namespace SkkmConnector
         public DateTime ValidUntil { get; set; }
 
         /// <summary>
-        /// Версия узла (модуля), к которому относится лицензия.
+        /// Версия узла
         /// </summary>
         [JsonPropertyName("UnitVersion")]
         public string? UnitVersion { get; set; }
@@ -45,7 +45,7 @@ namespace SkkmConnector
         public string? Description { get; set; }
 
         /// <summary>
-        /// Признак активной (действующей) лицензии.
+        /// Признак активной лицензии.
         /// </summary>
         [JsonPropertyName("IsActive")]
         public bool IsActive { get; set; }

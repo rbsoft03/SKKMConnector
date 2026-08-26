@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Предупреждения ФН (Warnings / FnWarnings).
+    /// Предупреждения ФН 
     /// </summary>
     public class Warnings
     {

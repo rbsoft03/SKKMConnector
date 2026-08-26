@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Счетчик документов одного вида: количество и сумма
+    /// Счетчик документов
     /// </summary>
     public class DocData
     {
@@ -20,7 +20,7 @@ namespace SkkmConnector
         public decimal Sum { get; set; }
 
         /// <summary>
-        /// Разбивка суммы по видам оплаты (наличные, безналичные, аванс, кредит, бартер).
+        /// Разбивка суммы по видам оплаты 
         /// </summary>
         [JsonPropertyName("Payments")]
         public DocDataPayments? Payments { get; set; }

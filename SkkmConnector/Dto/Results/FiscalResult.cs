@@ -2,10 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace SkkmConnector
 {
-    /// <summary>
-    /// FiscalParams — результат POST check, correction, shift/open, shift/z, shift/x, report/settlement, cashin, cashout.
-    /// Заполняется автоматически после вызова; поля, которых нет в конкретном ответе, остаются пустыми.
-    /// </summary>
     public class FiscalResult
     {
         /// <summary>

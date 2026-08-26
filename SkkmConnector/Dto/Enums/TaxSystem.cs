@@ -1,7 +1,7 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Система налогообложения (СНО, TaxVariant): 0 — ОСН, 1 — УСН, 2 — УСНД_Р, 3 — ЕНВД, 4 — ЕСН, 5 — ПСН.
+    /// Система налогообложения
     /// </summary>
     public enum TaxSystem
     {

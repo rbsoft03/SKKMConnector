@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Заголовок фискального документа (DocumentHeader).
+/// Заголовок фискального документа
 /// </summary>
 public sealed class DocumentHeader
 {

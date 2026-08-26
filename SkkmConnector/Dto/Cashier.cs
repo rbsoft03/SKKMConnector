@@ -1,7 +1,7 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Сведения о кассире (продавце)
+/// Сведения о кассире 
 /// </summary>
 public sealed class Cashier
 {

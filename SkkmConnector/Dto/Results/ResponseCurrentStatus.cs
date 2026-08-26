@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Краткий статус смены и очереди ОФД (ResponseCurrentStatus, GET kkt/shift/status).
+    /// Краткий статус смены и очереди ОФД 
     /// </summary>
     public class ResponseCurrentStatus
     {

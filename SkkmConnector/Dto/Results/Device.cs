@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Описание ККМ (KktInfo / DeviceInfo).
+    /// Описание ККМ 
     /// </summary>
     public class Device
     {
         /// <summary>
-        /// Часовая зона: 0 — авто; 1 — МСК-1 / UTC+2; … 11 — МСК+9 / UTC+12.
+        /// Часовая зона
         /// </summary>
         [JsonPropertyName("TimeZone")]
         public int TimeZone { get; set; }
@@ -44,8 +44,7 @@ namespace SkkmConnector
         public string? FnFfdVersion { get; set; }
 
         /// <summary>
-        /// Тип устройства: 1 — принтер; 2 — чековый принтер; 3 — фискальный регистратор; 4 — онлайн-ККТ по 54-ФЗ;
-        /// 5 — эквайринговый терминал; 6 — ТСД; 7 — весы; 8 — весы с печатью этикеток; 9 — сканер штрихкодов.
+        /// Тип устройства
         /// </summary>
         [JsonPropertyName("DeviceClass")]
         public int DeviceClass { get; set; }

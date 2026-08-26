@@ -20,49 +20,49 @@ namespace SkkmConnector
         public int NumberCorrections { get; set; }
 
         /// <summary>
-        /// Приход: количество и суммы чеков продажи.
+        /// Приход
         /// </summary>
         [JsonPropertyName("Sales")]
         public DocData? Sales { get; set; }
 
         /// <summary>
-        /// Возврат прихода: количество и суммы.
+        /// Возврат прихода
         /// </summary>
         [JsonPropertyName("SalesReturn")]
         public DocData? SalesReturn { get; set; }
 
         /// <summary>
-        /// Коррекция прихода: количество и суммы.
+        /// Коррекция прихода
         /// </summary>
         [JsonPropertyName("SalesCorrection")]
         public DocData? SalesCorrection { get; set; }
 
         /// <summary>
-        /// Коррекция возврата прихода: количество и суммы.
+        /// Коррекция возврата прихода
         /// </summary>
         [JsonPropertyName("SalesReturnCorrection")]
         public DocData? SalesReturnCorrection { get; set; }
 
         /// <summary>
-        /// Расход: количество и суммы.
+        /// Расход
         /// </summary>
         [JsonPropertyName("Purchases")]
         public DocData? Purchases { get; set; }
 
         /// <summary>
-        /// Возврат расхода: количество и суммы.
+        /// Возврат расхода
         /// </summary>
         [JsonPropertyName("PurchasesReturn")]
         public DocData? PurchasesReturn { get; set; }
 
         /// <summary>
-        /// Коррекция расхода: количество и суммы.
+        /// Коррекция расхода
         /// </summary>
         [JsonPropertyName("PurchasesCorrection")]
         public DocData? PurchasesCorrection { get; set; }
 
         /// <summary>
-        /// Коррекция возврата расхода: количество и суммы.
+        /// Коррекция возврата расхода
         /// </summary>
         [JsonPropertyName("PurchasesReturnCorrection")]
         public DocData? PurchasesReturnCorrection { get; set; }

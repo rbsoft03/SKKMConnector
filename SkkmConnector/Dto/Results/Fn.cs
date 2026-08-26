@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Описание фискального накопителя (FnInfo).
+    /// Описание фискального накопителя
     /// </summary>
     public class Fn
     {
         /// <summary>
-        /// Количество проведённых фискализаций (регистраций/перерегистраций).
+        /// Количество проведённых фискализаций
         /// </summary>
         [JsonPropertyName("FiscalizationsCount")]
         public int FiscalizationsCount { get; set; }
@@ -38,7 +38,7 @@ namespace SkkmConnector
         public string? SenderEmail { get; set; }
 
         /// <summary>
-        /// Флаги систем налогообложения ККТ (битовая маска, см. коды СНО).
+        /// Код систем налогообложения 
         /// </summary>
         [JsonPropertyName("TaxVariant")]
         public int TaxVariant { get; set; }
@@ -50,7 +50,7 @@ namespace SkkmConnector
         public int ReasonCode { get; set; }
 
         /// <summary>
-        /// Версия ФФД (например 1.05 или 1.2).
+        /// Версия ФФД 
         /// </summary>
         [JsonPropertyName("FfdVersion")]
         public string? FfdVersion { get; set; }
@@ -62,7 +62,7 @@ namespace SkkmConnector
         public string? SerialNumber { get; set; }
 
         /// <summary>
-        /// Наименование организации (владельца ККТ).
+        /// Наименование организации 
         /// </summary>
         [JsonPropertyName("OrganizationName")]
         public string? OrganizationName { get; set; }
@@ -80,43 +80,43 @@ namespace SkkmConnector
         public DateTime ValidityDate { get; set; }
 
         /// <summary>
-        /// Адрес расчётов, зашитый при регистрации.
+        /// Адрес расчётов
         /// </summary>
         [JsonPropertyName("SaleAddress")]
         public string? SaleAddress { get; set; }
 
         /// <summary>
-        /// Место расчётов, зашитое при регистрации.
+        /// Место расчётов
         /// </summary>
         [JsonPropertyName("SaleLocation")]
         public string? SaleLocation { get; set; }
 
         /// <summary>
-        /// Признак агента, зашитый при регистрации (тег 1057).
+        /// Признак агента (тег 1057).
         /// </summary>
         [JsonPropertyName("SignOfAgent")]
         public int SignOfAgent { get; set; }
 
         /// <summary>
-        /// Номер автомата (для автоматических устройств расчётов).
+        /// Номер автомата
         /// </summary>
         [JsonPropertyName("AutomaticNumber")]
         public string? AutomaticNumber { get; set; }
 
         /// <summary>
-        /// Оператор фискальных данных (наименование, ИНН).
+        /// Оператор фискальных данных
         /// </summary>
         [JsonPropertyName("Ofd")]
         public Ofd? Ofd { get; set; }
 
         /// <summary>
-        /// Предупреждения ФН (срок, память, непереданные документы).
+        /// Предупреждения ФН 
         /// </summary>
         [JsonPropertyName("Warnings")]
         public Warnings? Warnings { get; set; }
 
         /// <summary>
-        /// Разрешённые режимы работы ККТ (шифрование, автономный, автоматический и т.п.).
+        /// Разрешённые режимы работы ККТ 
         /// </summary>
         [JsonPropertyName("Modes")]
         public FnModes? Modes { get; set; }

@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// HTTP-транспорт к серверу ККМ. Один <see cref="HttpClient"/> на экземпляр <see cref="ServerKkm"/>.
+    /// HTTP-транспорт к серверу ККМ. 
     /// </summary>
     internal sealed class KkmTransport : IDisposable
     {

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Состояние ККТ (KktStatus) после GET kkt/status или GET kkt.
+    /// Состояние ККТ 
     /// </summary>
     public class KktStatus
     {
@@ -32,7 +32,7 @@ namespace SkkmConnector
         public bool IsOfdDisconnected { get; set; }
 
         /// <summary>
-        /// Предупреждения ФН (срок, память, непереданные документы).
+        /// Предупреждения ФН
         /// </summary>
         [JsonPropertyName("Warnings")]
         public Warnings? Warnings { get; set; }

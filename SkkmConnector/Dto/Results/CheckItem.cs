@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Позиция сохранённого чека (CheckItem).
+/// Позиция сохранённого чека
 /// </summary>
 public sealed class CheckItem
 {
@@ -56,8 +56,7 @@ public sealed class CheckItem
     public decimal TaxSum { get; set; }
 
     /// <summary>
-    /// Признак способа расчёта: 0 — не применяется; 1 — полная предоплата; 2 — частичная предоплата;
-    /// 3 — аванс; 4 — полная оплата; 5 — частичная оплата и кредит; 6 — передача в кредит; 7 — оплата кредита.
+    /// Признак способа расчёта
     /// </summary>
     [JsonPropertyName("PaymentMode")]
     public int PaymentMode { get; set; }

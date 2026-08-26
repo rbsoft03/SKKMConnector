@@ -11,7 +11,7 @@ public sealed class Customer
     public string? Info { get; set; }
 
     /// <summary>
-    /// ИНН организации или покупателя (клиента)
+    /// ИНН покупателя
     /// </summary>
     public string? Vatin { get; set; }
 
@@ -26,17 +26,17 @@ public sealed class Customer
     public string? Phone { get; set; }
 
     /// <summary>
-    /// Дата рождения покупателя (клиента) в формате "DD.MM.YYYY"
+    /// Дата рождения покупателя (клиента)
     /// </summary>
     public string? DateOfBirth { get; set; }
 
     /// <summary>
-    /// Числовой код страны, гражданином которой является покупатель (клиент)
+    /// Числовой код страны
     /// </summary>
     public string? Citizenship { get; set; }
 
     /// <summary>
-    /// Числовой код вида документа, удостоверяющего личность (ФФД, таблица 116)
+    /// Числовой код вида документа, удостоверяющего личность (таблица 116)
     /// </summary>
     public string? DocumentTypeCode { get; set; }
 
@@ -46,7 +46,7 @@ public sealed class Customer
     public string? DocumentData { get; set; }
 
     /// <summary>
-    /// Адрес покупателя (клиента)
+    /// Адрес покупателя 
     /// </summary>
     public string? Address { get; set; }
 }

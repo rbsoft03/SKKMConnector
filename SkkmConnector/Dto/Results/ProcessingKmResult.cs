@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// ProcessingKMResult — результат проверки кода маркировки в ОИСМ (GET marking/km/result).
+    /// Результат проверки кода маркировки в ОИСМ
     /// </summary>
     public class ProcessingKmResult
     {
         /// <summary>
-        /// Идентификатор запроса КМ (тот же Guid, что в marking/km/request).
+        /// Идентификатор запроса КМ 
         /// </summary>
         [JsonPropertyName("Guid")]
         public string? Guid { get; set; }

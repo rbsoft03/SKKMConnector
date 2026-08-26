@@ -3,8 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Сохранённый документ с сервера (Check / ReportX / ReportZ / OpenShift / CashIn и т.д.).
-/// Поля, которых нет в конкретном ответе, остаются пустыми. Вложенные типы: <see cref="CheckItem"/>, <see cref="CheckPayments"/>, <see cref="CheckCustomer"/>, <see cref="QrCheckData"/>, <see cref="DocumentHeader"/>.
+/// Сохранённый документ с сервера 
 /// </summary>
 public sealed class CheckDocument
 {
@@ -111,7 +110,7 @@ public sealed class CheckDocument
     public int ShiftNumber { get; set; }
 
     /// <summary>
-    /// Номер фискального документа. Используется для GET check/fiscalSign.
+    /// Номер фискального документа.
     /// </summary>
     [JsonPropertyName("DocNumber")]
     public int DocNumber { get; set; }
@@ -177,9 +176,7 @@ public sealed class CheckDocument
     public string? Tlv { get; set; }
 
     /// <summary>
-    /// Тип чека: 0 — текст, 1 — приход, 2 — возврат прихода, 3 — расход, 4 — возврат расхода,
-    /// 5–8 — коррекции, 9 — слип, 10 — фискализация, 11 — открытие смены, 12 — Z-отчёт, 13 — X-отчёт,
-    /// 14 — отчёт о состоянии расчётов, 20 — выемка, 21 — внесение, 22 — открытие денежного ящика.
+    /// Тип чека
     /// </summary>
     [JsonPropertyName("TaskType")]
     public int TaskType { get; set; }

@@ -1,7 +1,7 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Тип чека (PaymentType).
+    /// Тип чека
     /// </summary>
     public enum CheckType
     {

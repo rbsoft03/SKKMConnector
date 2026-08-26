@@ -11,7 +11,7 @@ public sealed class Industry
     public string? IdentifierFoiv { get; set; }
 
     /// <summary>
-    /// Дата документа основания в формате "DD.MM.YYYY"
+    /// Дата документа основания
     /// </summary>
     public string? DocumentDate { get; set; }
 

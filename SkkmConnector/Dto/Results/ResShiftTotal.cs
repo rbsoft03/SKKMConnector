@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Итоги текущей кассовой смены (после GetTotals).
+    /// Итоги текущей кассовой смены
     /// </summary>
     public class ResShiftTotal
     {

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Ответ Сервера ККМ с полезной нагрузкой в поле Result.
+    /// Ответ Сервера ККМ
     /// </summary>
     internal class ResponseResult<T> : ResponseResultBase
     {

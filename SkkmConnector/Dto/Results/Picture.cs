@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Элемент списка изображений (GET picture/list).
+    /// Элемент списка изображений
     /// </summary>
     public class Picture
     {

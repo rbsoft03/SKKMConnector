@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// RequestKMResult — результат локальной проверки кода маркировки (POST marking/km/request).
+    /// Результат локальной проверки кода маркировки 
     /// </summary>
     public class RequestKmResult
     {

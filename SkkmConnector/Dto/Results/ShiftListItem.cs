@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Элемент списка отчётов (ReportsResponse): открытия смен, X/Z, отчёты о расчётах.
+/// Элемент списка отчётов
 /// </summary>
 public sealed class ShiftListItem
 {

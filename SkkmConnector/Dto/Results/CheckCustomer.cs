@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Сведения о покупателе из ответа (CustomerDetail).
+/// Сведения о покупателе из ответа
 /// </summary>
 public sealed class CheckCustomer
 {
@@ -32,7 +32,7 @@ public sealed class CheckCustomer
     public string? Phone { get; set; }
 
     /// <summary>
-    /// Дата рождения покупателя в формате DD.MM.YYYY.
+    /// Дата рождения покупателя
     /// </summary>
     [JsonPropertyName("DateOfBirth")]
     public string? DateOfBirth { get; set; }

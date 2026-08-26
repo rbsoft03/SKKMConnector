@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Итог внесений или выемок за смену: количество операций и сумма.
+    /// Итог внесений или выемок за смену
     /// </summary>
     public class ShiftIncome
     {
         /// <summary>
-        /// Количество операций (внесений или выемок).
+        /// Количество операций 
         /// </summary>
         [JsonPropertyName("Count")]
         public int Count { get; set; }
