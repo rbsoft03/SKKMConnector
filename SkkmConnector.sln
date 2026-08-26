@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkkmConnector", "SkkmConnector\SkkmConnector.csproj", "{B3E9408D-958F-4D7A-B40B-AF1B93DA2064}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkkmForm", "SkkmForm\SkkmForm.csproj", "{36536043-031E-C124-78E9-2B8AC87DBBFC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{B3E9408D-958F-4D7A-B40B-AF1B93DA2064}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3E9408D-958F-4D7A-B40B-AF1B93DA2064}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3E9408D-958F-4D7A-B40B-AF1B93DA2064}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36536043-031E-C124-78E9-2B8AC87DBBFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36536043-031E-C124-78E9-2B8AC87DBBFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36536043-031E-C124-78E9-2B8AC87DBBFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36536043-031E-C124-78E9-2B8AC87DBBFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

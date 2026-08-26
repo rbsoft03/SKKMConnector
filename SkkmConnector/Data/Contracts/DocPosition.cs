@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Строка нефискального документа: текст или штрихкод.
+    /// Строка нефискального документа
     /// </summary>
     internal class DocPosition
     {
@@ -17,7 +17,13 @@ namespace SkkmConnector.Internal
         /// Печать штрихкода
         /// </summary>
         [JsonPropertyName("Barcode")]
-        public Barcode? Barcode { get; set; }
+        public BarcodeLine? Barcode { get; set; }
+
+        /// <summary>
+        /// Печать картинки (Base64)
+        /// </summary>
+        [JsonPropertyName("Picture")]
+        public PictureLine? Picture { get; set; }
 
         /// <summary>
         /// Горизонтальная разделительная линия на всю ширину чека

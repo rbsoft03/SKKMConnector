@@ -3,36 +3,36 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Предупреждения фискального накопителя
+    /// Предупреждения ФН (Warnings / FnWarnings).
     /// </summary>
     public class Warnings
     {
         /// <summary>
-        /// Критическая ошибка ФН
+        /// Критическая ошибка ФН.
         /// </summary>
         [JsonPropertyName("CriticalError")]
         public bool CriticalError { get; set; }
 
         /// <summary>
-        /// Память ФН переполнена
+        /// Память ФН переполнена.
         /// </summary>
         [JsonPropertyName("MemoryOverflow")]
         public bool MemoryOverflow { get; set; }
 
         /// <summary>
-        /// Требуется срочная замена ФН
+        /// Требуется срочная замена ФН.
         /// </summary>
         [JsonPropertyName("NeedReplacement")]
         public bool NeedReplacement { get; set; }
 
         /// <summary>
-        /// Превышено время ожидания подтверждения от ОФД
+        /// Превышено время ожидания ответа от ОФД.
         /// </summary>
         [JsonPropertyName("OfdTimeout")]
         public bool OfdTimeout { get; set; }
 
         /// <summary>
-        /// Ресурс ФН исчерпан
+        /// Исчерпан ресурс ФН.
         /// </summary>
         [JsonPropertyName("ResourceExhausted")]
         public bool ResourceExhausted { get; set; }

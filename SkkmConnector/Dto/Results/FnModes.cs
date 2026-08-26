@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Режимы работы ККТ, заданные при фискализации
+    /// Режимы работы ККТ (FnModes), заданные при фискализации.
     /// </summary>
     public class FnModes
     {

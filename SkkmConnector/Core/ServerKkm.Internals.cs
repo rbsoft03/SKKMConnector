@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using SkkmConnector.Internal;
 
@@ -6,56 +7,23 @@ namespace SkkmConnector;
 // Транспортная инфраструктура: выбор соединения, вызов и разбор ответа.
 public sealed partial class ServerKkm
 {
-    private const int DefaultPort = 4398;
+    private string DeviceQuery => $"device={Uri.EscapeDataString(DeviceName)}";
+    private string IdQuery => $"id={Uri.EscapeDataString(DocumentId)}";
 
-    private async Task Exec(Func<KkmTransport, Task<ResponseResult<JsonElement>>> operation)
+    private static readonly JsonSerializerOptions ResultJsonOptions = new()
     {
-        var result = await operation(Transport());
-        Apply(result);
-    }
-
-    private Task Exec(Func<KkmTransport, Task> operation) => operation(Transport());
+        PropertyNameCaseInsensitive = true
+    };
 
     private KkmTransport Transport()
     {
-        var connection = Connection();
-        if (_http == null || _http.Host != connection.Host || _http.Port != connection.Port)
-        {
-            _http?.Dispose();
-            _http = new KkmTransport(connection.Host, connection.Port);
-        }
-
+        _http.Host = Host;
+        _http.Port = Port;
+        _http.UseHttps = UseHttps;
         _http.Token = Token;
         _http.TerminalId = TerminalId;
+        _http.Timeout = Timeout;
         return _http;
-    }
-
-    private (string Host, int Port) Connection()
-        => Host.Contains(":")
-            ? ParseServerAddress(Host)
-            : (string.IsNullOrWhiteSpace(Host) ? "localhost" : Host.Trim(), Port > 0 ? Port : DefaultPort);
-
-    /// <summary>
-    /// Разбор адреса сервера ККМ: host или host:port.
-    /// </summary>
-    private static (string Host, int Port) ParseServerAddress(string? address)
-    {
-        address = (address ?? "").Trim();
-        if (address.Length == 0)
-            return ("localhost", DefaultPort);
-
-        int colon = address.IndexOf(':');
-        if (colon <= 0)
-            return (address, DefaultPort);
-
-        string host = address.Substring(0, colon).Trim();
-        if (host.Length == 0)
-            host = "localhost";
-
-        if (!int.TryParse(address.Substring(colon + 1).Trim(), out int port) || port <= 0 || port > 65535)
-            port = DefaultPort;
-
-        return (host, port);
     }
 
     private void Apply<T>(ResponseResult<T> result)
@@ -63,22 +31,22 @@ public sealed partial class ServerKkm
         Ok = result.Success;
         ErrorCode = result.Code;
         ErrorDescription = result.Description ?? "";
-        if (_http != null)
-        {
-            LastStatusCode = _http.LastStatusCode;
-            LastDurationMs = _http.LastDurationMs;
-            LastRequestInfo = _http.LastRequestInfo;
-            LastRequestBody = _http.LastRequestBody;
-            LastResponseBody = _http.LastResponseBody;
-            LastRequestHeaders = _http.LastRequestHeaders;
-        }
-
-        LastResult = result.Result is JsonElement element ? element : default;
+        LastResult = ToJsonElement(result.Result);
+        FiscalResult = null;
         ExtractFiscalResult(LastResult);
     }
 
+    private static JsonElement ToJsonElement<T>(T? value)
+    {
+        if (value is JsonElement element)
+            return element;
+        if (value is null)
+            return default;
+        return JsonSerializer.SerializeToElement(value, ResultJsonOptions);
+    }
+
     // Раскладывает результат фискальной операции из ответа: заполняет FiscalResult
-    // и переносит ключевые значения в плоские свойства (как это делает 1С после печати).
+    // и переносит ключевые значения в плоские свойства 
     private void ExtractFiscalResult(JsonElement result)
     {
         if (result.ValueKind != JsonValueKind.Object)
@@ -87,7 +55,7 @@ public sealed partial class ServerKkm
         FiscalResult? fiscal;
         try
         {
-            fiscal = result.Deserialize<FiscalResult>();
+            fiscal = result.Deserialize<FiscalResult>(ResultJsonOptions);
         }
         catch (JsonException)
         {
@@ -95,6 +63,11 @@ public sealed partial class ServerKkm
         }
 
         if (fiscal == null)
+            return;
+        if (string.IsNullOrEmpty(fiscal.FiscalSign)
+            && fiscal.FiscalNumber == 0
+            && fiscal.ShiftNumber == 0
+            && string.IsNullOrEmpty(fiscal.DocId))
             return;
 
         FiscalResult = fiscal;
@@ -107,5 +80,89 @@ public sealed partial class ServerKkm
             CheckNumber = fiscal.FiscalNumber;
         if (fiscal.ShiftNumber > 0)
             ShiftNumber = fiscal.ShiftNumber;
+    }
+
+    private T? ReadResult<T>()
+    {
+        if (LastResult.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            return default;
+
+        try
+        {
+            return LastResult.Deserialize<T>(ResultJsonOptions);
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
+    private void ApplyDocument(CheckDocument? document)
+    {
+        Check = document;
+        if (document == null)
+            return;
+
+        if (!string.IsNullOrEmpty(document.FiscalSign))
+            FiscalSign = document.FiscalSign!;
+        if (document.DocNumber > 0)
+            CheckNumber = document.DocNumber;
+        if (document.ShiftNumber > 0)
+            ShiftNumber = document.ShiftNumber;
+        if (!string.IsNullOrEmpty(document.DocId))
+            DocumentId = document.DocId!;
+
+        FiscalResult = new FiscalResult
+        {
+            DateTime = document.Date.ToString("o", CultureInfo.InvariantCulture),
+            DeviceName = document.DeviceName,
+            DocId = document.DocId,
+            FnsUrl = document.DocumentHeader?.FnsUrl,
+            FnNumber = document.DocumentHeader?.Fn,
+            RnNumber = document.DocumentHeader?.RnNumber,
+            FiscalDateTime = document.FiscalDate.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+            FiscalSign = document.FiscalSign,
+            ShiftNumber = document.ShiftNumber,
+            FiscalNumber = document.DocNumber
+        };
+    }
+
+    private async Task Get(string path)
+    {
+        Apply(await Transport().Get(path));
+    }
+
+    private async Task Post(string path, object? body = null)
+    {
+        Apply(await Transport().Post(path, body));
+    }
+
+    /// <summary>
+    /// GET документа по <see cref="DocumentId"/>.
+    /// </summary>
+    private async Task GetDocumentById(string path)
+    {
+        await Get($"{path}?{IdQuery}");
+        ApplyDocument(ReadResult<CheckDocument>());
+    }
+
+    /// <summary>
+    /// GET списка документов по кассе.
+    /// </summary>
+    private async Task GetCheckList(string path)
+    {
+        await Get($"{path}?{DeviceQuery}");
+        Checks = ReadResult<CheckDocument[]>() ?? [];
+    }
+
+    /// <summary>
+    /// GET списка отчётов за период <see cref="ShiftsFrom"/>..<see cref="ShiftsTo"/>.
+    /// </summary>
+    private async Task GetReportList(string path)
+    {
+        var from = ShiftsFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var to = ShiftsTo.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        await Get($"{path}?{DeviceQuery}&from={from}&to={to}");
+        Shifts = ReadResult<ShiftListItem[]>() ?? [];
     }
 }

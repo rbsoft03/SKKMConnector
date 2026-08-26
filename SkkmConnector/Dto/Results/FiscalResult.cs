@@ -3,49 +3,37 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Результат фискальной операции из ответа сервера (после печати чека, коррекции, открытия/закрытия смены и т.п.).
+    /// FiscalParams — результат POST check, correction, shift/open, shift/z, shift/x, report/settlement, cashin, cashout.
     /// Заполняется автоматически после вызова; поля, которых нет в конкретном ответе, остаются пустыми.
     /// </summary>
     public class FiscalResult
     {
         /// <summary>
-        /// Фискальный признак документа. Можно передать в PrintCheckCopy для печати копии.
-        /// </summary>
-        [JsonPropertyName("fiscalSign")]
-        public string? FiscalSign { get; set; }
-
-        /// <summary>
-        /// Номер фискального документа.
-        /// </summary>
-        [JsonPropertyName("fiscalNumber")]
-        public int FiscalNumber { get; set; }
-
-        /// <summary>
-        /// Номер смены.
-        /// </summary>
-        [JsonPropertyName("shiftNumber")]
-        public int ShiftNumber { get; set; }
-
-        /// <summary>
-        /// Идентификатор документа на сервере.
-        /// </summary>
-        [JsonPropertyName("docId")]
-        public string? DocId { get; set; }
-
-        /// <summary>
-        /// Время операции по данным сервера (строка ISO).
+        /// Время операции.
         /// </summary>
         [JsonPropertyName("datetime")]
         public string? DateTime { get; set; }
 
         /// <summary>
-        /// Фискальное время документа (строка).
+        /// Название устройства.
         /// </summary>
-        [JsonPropertyName("fiscalDatetime")]
-        public string? FiscalDateTime { get; set; }
+        [JsonPropertyName("deviceName")]
+        public string? DeviceName { get; set; }
 
         /// <summary>
-        /// Номер ФН.
+        /// Идентификатор документа.
+        /// </summary>
+        [JsonPropertyName("docId")]
+        public string? DocId { get; set; }
+
+        /// <summary>
+        /// Адрес сайта уполномоченного органа (ФНС) в сети «Интернет».
+        /// </summary>
+        [JsonPropertyName("fnsUrl")]
+        public string? FnsUrl { get; set; }
+
+        /// <summary>
+        /// Номер фискального накопителя.
         /// </summary>
         [JsonPropertyName("fnNumber")]
         public string? FnNumber { get; set; }
@@ -57,9 +45,27 @@ namespace SkkmConnector
         public string? RnNumber { get; set; }
 
         /// <summary>
-        /// Адрес проверки чека на сайте ФНС.
+        /// Дата и время документа по часам ФН.
         /// </summary>
-        [JsonPropertyName("fnsUrl")]
-        public string? FnsUrl { get; set; }
+        [JsonPropertyName("fiscalDatetime")]
+        public string? FiscalDateTime { get; set; }
+
+        /// <summary>
+        /// Фискальный признак документа.
+        /// </summary>
+        [JsonPropertyName("fiscalSign")]
+        public string? FiscalSign { get; set; }
+
+        /// <summary>
+        /// Номер смены.
+        /// </summary>
+        [JsonPropertyName("shiftNumber")]
+        public int ShiftNumber { get; set; }
+
+        /// <summary>
+        /// Номер фискального документа.
+        /// </summary>
+        [JsonPropertyName("fiscalNumber")]
+        public int FiscalNumber { get; set; }
     }
 }

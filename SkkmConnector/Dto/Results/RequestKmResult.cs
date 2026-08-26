@@ -3,30 +3,30 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Результат локальной проверки кода маркировки.
+    /// RequestKMResult — результат локальной проверки кода маркировки (POST marking/km/request).
     /// </summary>
     public class RequestKmResult
     {
         /// <summary>
-        /// Связь с ОИСМ на момент запроса.
+        /// Признак наличия связи с ОИСМ на момент отправки запроса.
         /// </summary>
         [JsonPropertyName("ISMConnected")]
         public bool IsmConnected { get; set; }
 
         /// <summary>
-        /// Формат кода маркировки корректный.
+        /// Признак того, что проверка формата кода маркировки прошла успешно.
         /// </summary>
         [JsonPropertyName("FormatChecking")]
         public bool FormatChecking { get; set; }
 
         /// <summary>
-        /// Код маркировки поставлен в обработку фискальным накопителем.
+        /// Признак того, что проверка кода маркировки поставлена в обработку.
         /// </summary>
         [JsonPropertyName("Checking")]
         public bool Checking { get; set; }
 
         /// <summary>
-        /// Результат проверки КП КМ, если уже известен.
+        /// Результат проверки, если он уже доступен на момент ответа.
         /// </summary>
         [JsonPropertyName("CheckingResult")]
         public bool CheckingResult { get; set; }

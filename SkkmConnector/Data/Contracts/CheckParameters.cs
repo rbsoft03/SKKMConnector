@@ -1,14 +1,15 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Тело запроса печати чека: POST check / POST check/async
+    /// Параметры для печати чека или чека коррекции 1.2
     /// </summary>
     internal class CheckParameters : CheckbaseParameters
     {
         /// <summary>
-        /// Тип чека: 1 - продажа, 2 - возврат, 4 - покупка, 5 - возврат покупки
+        /// Тип чека
         /// </summary>
         [JsonPropertyName("PaymentType")]
         public int PaymentType { get; set; }
@@ -20,52 +21,118 @@ namespace SkkmConnector.Internal
         public int TaxVariant { get; set; }
 
         /// <summary>
-        /// Сведения о покупателе
+        /// Сведения о покупателе (клиенте)
         /// </summary>
         [JsonPropertyName("Customer")]
         public Customer? Customer { get; set; }
 
         /// <summary>
-        /// Место проведения расчётов.
+        /// Место проведения расчетов
         /// </summary>
         [JsonPropertyName("SaleLocation")]
         public string? SaleLocation { get; set; }
 
         /// <summary>
-        /// Только электронный чек, без печати на бумаге
+        /// Адрес проведения расчетов
+        /// </summary>
+        [JsonPropertyName("SaleAddress")]
+        public string? SaleAddress { get; set; }
+
+        /// <summary>
+        /// Адрес электронной почты отправителя чека
+        /// </summary>
+        [JsonPropertyName("SenderEmail")]
+        public string? SenderEmail { get; set; }
+
+        /// <summary>
+        /// Признак применения ККТ при осуществлении расчета в безналичном порядке в сети «Интернет»
+        /// </summary>
+        [JsonPropertyName("OperationOnline")]
+        public bool? OperationOnline { get; set; }
+
+        /// <summary>
+        /// Отраслевой реквизит чека
+        /// </summary>
+        [JsonPropertyName("IndustryAttribute")]
+        public Industry? IndustryAttribute { get; set; }
+
+        /// <summary>
+        /// Дополнительный реквизит пользователя
+        /// </summary>
+        [JsonPropertyName("UserAttribute")]
+        public UserAttribute? UserAttribute { get; set; }
+
+        /// <summary>
+        /// Операционный реквизит чека
+        /// </summary>
+        [JsonPropertyName("OperationalAttribute")]
+        public OperationalAttribute? OperationalAttribute { get; set; }
+
+        /// <summary>
+        /// Сведения об оплате безналичными
+        /// </summary>
+        [JsonPropertyName("ElectronicPaymentInfo")]
+        public List<ElectronicPayment>? ElectronicPaymentInfo { get; set; }
+
+        /// <summary>
+        /// Формирование чека только в электронном виде
         /// </summary>
         [JsonPropertyName("Electronically")]
         public bool Electronically { get; set; }
 
         /// <summary>
-        /// Текст перед товарной частью
+        /// Номер часовой зоны места расчётов.
+        /// Если поле не указано, используется значение из поля «Часовая зона» в настройках ККТ.
+        /// </summary>
+        [JsonPropertyName("TimeZone")]
+        public int? TimeZone { get; set; }
+
+        /// <summary>
+        /// Текст для печати перед товарной частью
         /// </summary>
         [JsonPropertyName("TextBefore")]
         public string? TextBefore { get; set; }
 
         /// <summary>
-        /// Текст после товарной части
+        /// Текст для печати после товарной части чека
         /// </summary>
         [JsonPropertyName("TextAfter")]
         public string? TextAfter { get; set; }
 
         /// <summary>
-        /// Дополнительный реквизит чека (тег 1192).
-        /// Для чека коррекции сюда записывается ФП корректируемого чека
+        /// Дополнительный реквизит чека (БСО), тег 1192
         /// </summary>
         [JsonPropertyName("AdditionalAttribute")]
         public string? AdditionalAttribute { get; set; }
 
         /// <summary>
-        /// Виды оплаты
+        /// Признак агента
+        /// </summary>
+        [JsonPropertyName("AgentSign")]
+        public int? AgentSign { get; set; }
+
+        /// <summary>
+        /// Данные агента
+        /// </summary>
+        [JsonPropertyName("AgentData")]
+        public Agent? AgentData { get; set; }
+
+        /// <summary>
+        /// Данные поставщика
+        /// </summary>
+        [JsonPropertyName("Vendor")]
+        public Vendor? Vendor { get; set; }
+
+        /// <summary>
+        /// Оплаты
         /// </summary>
         [JsonPropertyName("Payments")]
         public Payments? Payments { get; set; }
 
         /// <summary>
-        /// Позиции чека
+        /// Товары
         /// </summary>
         [JsonPropertyName("Positions")]
-        public Position[]? Positions { get; set; }
+        public ApiPosition[]? Positions { get; set; }
     }
 }

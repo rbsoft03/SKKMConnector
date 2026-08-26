@@ -2,67 +2,35 @@ using System.Text.Json;
 
 namespace SkkmConnector;
 
-// Свойства-результаты последнего вызова и отладочные данные обмена.
+// Свойства-результаты последнего вызова.
 public sealed partial class ServerKkm
 {
 
     // Результат последнего вызова
 
     /// <summary>
-    /// Успех последнего вызова.
+    /// Успех последнего вызова. Ответ каждого метода.
     /// </summary>
     public bool Ok { get; private set; }
 
     /// <summary>
-    /// Код ошибки последнего вызова.
+    /// Код ошибки сервера. Ответ. 0 - нет ошибки.
     /// </summary>
     public int ErrorCode { get; private set; }
 
     /// <summary>
-    /// Описание ошибки последнего вызова.
+    /// Текст ошибки сервера. Ответ. При успехе «OK» или пусто.
     /// </summary>
     public string ErrorDescription { get; private set; } = "";
 
     /// <summary>
-    /// Отладочно: HTTP-статус последнего обмена.
-    /// </summary>
-    public int LastStatusCode { get; private set; }
-
-    /// <summary>
-    /// Отладочно: длительность последнего обмена, мс.
-    /// </summary>
-    public long LastDurationMs { get; private set; }
-
-    /// <summary>
-    /// Отладочно: краткое описание последнего запроса.
-    /// </summary>
-    public string? LastRequestInfo { get; private set; }
-
-    /// <summary>
-    /// Отладочно: тело последнего запроса.
-    /// </summary>
-    public string? LastRequestBody { get; private set; }
-
-    /// <summary>
-    /// Отладочно: тело последнего ответа.
-    /// </summary>
-    public string? LastResponseBody { get; private set; }
-
-    /// <summary>
-    /// Отладочно: заголовки последнего запроса.
-    /// </summary>
-    public IReadOnlyList<KeyValuePair<string, string>> LastRequestHeaders { get; private set; }
-        = Array.Empty<KeyValuePair<string, string>>();
-
-    /// <summary>
-    /// Поле Result последнего ответа (если это JSON-объект).
+    /// Поле Result последнего ответа сервера (документы, статусы задач).
     /// </summary>
     public JsonElement LastResult { get; private set; }
 
     /// <summary>
-    /// Результат последней фискальной операции (печать чека, коррекции, смена и т.п.).
-    /// Заполняется автоматически из ответа сервера; из него же обновляются <see cref="FiscalSign"/>,
-    /// <see cref="CheckNumber"/> и <see cref="ShiftNumber"/>.
+    /// Фискальные поля ответа (чек, коррекция, смена): ФП, номер ФД, смена, DocId.
+    /// Ответ. Из него обновляются <see cref="FiscalSign"/>, <see cref="CheckNumber"/>, <see cref="ShiftNumber"/>.
     /// </summary>
     public FiscalResult? FiscalResult { get; private set; }
 
@@ -150,4 +118,30 @@ public sealed partial class ServerKkm
     /// Результат проверки КМ в ОИСМ после <see cref="GetProcessingKMResult"/>.
     /// </summary>
     public ProcessingKmResult? MarkingProcessing { get; private set; }
+
+    /// <summary>
+    /// Документ после GetCheck / GetCorrection120 / GetCorrection105 / GetReportX / GetReportZ /
+    /// GetOpenShift / GetReportSettlement / GetCashIn / GetCashOut.
+    /// </summary>
+    public CheckDocument? Check { get; private set; }
+
+    /// <summary>
+    /// Список документов после GetChecksByShift / GetCorrection120List / GetCorrection105List / GetCashInList.
+    /// </summary>
+    public CheckDocument[] Checks { get; private set; } = [];
+
+    /// <summary>
+    /// Статус задания после <see cref="GetTaskStatus"/>.
+    /// </summary>
+    public ResponseTaskStatus? TaskStatus { get; private set; }
+
+    /// <summary>
+    /// Печатная форма после <see cref="GetPrintForm"/>.
+    /// </summary>
+    public PrintFormLine[] PrintForm { get; private set; } = [];
+
+    /// <summary>
+    /// Список отчётов после GetShiftList / GetOpenShiftList / GetReportXList / GetReportSettlementList.
+    /// </summary>
+    public ShiftListItem[] Shifts { get; private set; } = [];
 }

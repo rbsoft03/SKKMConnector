@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Тело запроса внесения/выемки наличных: POST cashin / POST cashout
+    /// Внесения/выемки наличных.
     /// </summary>
     internal class CashdrawParameters : CheckbaseParameters
     {

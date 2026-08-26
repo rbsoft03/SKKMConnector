@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Ответ GET cash — остаток наличных в денежном ящике
+    /// Остаток наличных в денежном ящике.
     /// </summary>
     internal class CashSum
     {

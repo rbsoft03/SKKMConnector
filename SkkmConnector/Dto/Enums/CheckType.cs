@@ -1,63 +1,53 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Тип чека.
+    /// Тип чека (PaymentType).
     /// </summary>
     public enum CheckType
     {
         /// <summary>
-        /// Отмена чека
+        /// Не используется.
         /// </summary>
-        CancelCheck = 0,
+        None = 0,
 
         /// <summary>
-        /// Приход (продажа)
+        /// Продажа (приход).
         /// </summary>
         Sale = 1,
 
         /// <summary>
-        /// Возврат прихода
+        /// Возврат (возврат прихода).
         /// </summary>
         SaleReturn = 2,
 
         /// <summary>
-        /// Аннулирование
+        /// Покупка (расход).
         /// </summary>
-        Annulment = 3,
+        Purchase = 3,
 
         /// <summary>
-        /// Расход (покупка)
+        /// Возврат покупки (возврат расхода).
         /// </summary>
-        Purchase = 4,
+        PurchaseReturn = 4,
 
         /// <summary>
-        /// Возврат расхода
+        /// Чек коррекции прихода.
         /// </summary>
-        PurchaseReturn = 5,
+        CorrectionSale = 5,
 
         /// <summary>
-        /// Аннулирование покупки
+        /// Чек коррекции возврата прихода.
         /// </summary>
-        PurchaseAnnulment = 6,
+        CorrectionSaleReturn = 6,
 
         /// <summary>
-        /// Чек коррекции прихода
+        /// Чек коррекции расхода.
         /// </summary>
-        CorrectionSale = 7,
+        CorrectionPurchase = 7,
 
         /// <summary>
-        /// Чек коррекции возврата прихода
+        /// Чек коррекции возврата расхода.
         /// </summary>
-        CorrectionSaleReturn = 8,
-
-        /// <summary>
-        /// Чек коррекции расхода
-        /// </summary>
-        CorrectionPurchase = 9,
-
-        /// <summary>
-        /// Чек коррекции возврата расхода
-        /// </summary>
-        CorrectionPurchaseReturn = 10,
+        CorrectionPurchaseReturn = 8,
     }
 }

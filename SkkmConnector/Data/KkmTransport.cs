@@ -5,10 +5,9 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Внутренний HTTP-транспорт к серверу ККМ.
-    /// вызывается только из ServerKkm.
+    /// HTTP-транспорт к серверу ККМ. Один <see cref="HttpClient"/> на экземпляр <see cref="ServerKkm"/>.
     /// </summary>
-    internal class KkmTransport : IDisposable
+    internal sealed class KkmTransport : IDisposable
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -22,160 +21,115 @@ namespace SkkmConnector.Internal
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        /// <summary>
-        /// Путь API сервера ККМ.
-        /// </summary>
+        private readonly HttpClient _http = CreateHttp();
+        private bool _disposed;
+
         private const string ApiPath = "/PrintService/api/v4/";
-
         private const string JsonMediaType = "application/json";
+        private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(60);
 
-        private readonly HttpClient _http;
-
-        public string Host { get; }
-        public int Port { get; }
-
-        /// <summary>
-        /// Токен авторизации (заголовок api_key)
-        /// </summary>
+        public string Host { get; set; } = "localhost";
+        public int Port { get; set; } = 4398;
+        public bool UseHttps { get; set; }
         public string? Token { get; set; }
-
-        /// <summary>
-        /// Идентификатор терминала (заголовок TerminalId).
-        /// Необязательный, применяется для идентификации рабочего места
-        /// </summary>
         public string? TerminalId { get; set; }
+        public TimeSpan Timeout { get; set; } = DefaultTimeout;
 
-        /// <summary>
-        /// Тело последнего ответа сервера — для консоли
-        /// </summary>
-        public string? LastResponseBody { get; private set; }
-        public string? LastRequestInfo { get; private set; }
+        internal Task<ResponseResult<JsonElement>> Get(string path)
+            => SendAsync(HttpMethod.Get, path, body: null);
 
-        /// <summary>
-        /// Тело последнего запроса (JSON), если было
-        /// </summary>
-        public string? LastRequestBody { get; private set; }
+        internal Task<ResponseResult<JsonElement>> Post(string path, object? body = null)
+            => SendAsync(HttpMethod.Post, path, body);
 
-        /// <summary>
-        /// Заголовки последнего запроса (пары ключ-значение) — для отображения в консоли
-        /// </summary>
-        public IReadOnlyList<KeyValuePair<string, string>> LastRequestHeaders { get; private set; }
-            = Array.Empty<KeyValuePair<string, string>>();
-
-        /// <summary>
-        /// Длительность последнего запроса, мс
-        /// </summary>
-        public long LastDurationMs { get; private set; }
-
-        /// <summary>
-        /// HTTP-статус последнего ответа
-        /// </summary>
-        public int LastStatusCode { get; private set; }
-
-        public KkmTransport(string host, int port)
+        public void Dispose()
         {
-            Host = host;
-            Port = port;
-            _http = new HttpClient
-            {
-                BaseAddress = new Uri($"http://{host}:{port}{ApiPath}"),
-                Timeout = TimeSpan.FromSeconds(60)
-            };
+            if (_disposed)
+                return;
+            _disposed = true;
+            _http.Dispose();
         }
 
-        // GET-запрос без тела: например получить статус, список устройств, чек по id.
-        internal Task<T> Get<T>(string path) where T : ResponseResultBase, new()
+        private async Task<ResponseResult<JsonElement>> SendAsync(HttpMethod method, string relativeUrl, object? body)
         {
-            return SendAsync<T>(HttpMethod.Get, path, body: null);
-        }
-
-        // POST-запрос с телом: например напечатать чек, открыть/закрыть смену.
-        internal Task<T> Post<T>(string path, object? body = null) where T : ResponseResultBase, new()
-        {
-            return SendAsync<T>(HttpMethod.Post, path, body);
-        }
-
-        private async Task<T> SendAsync<T>(HttpMethod method, string relativeUrl, object? body = null)
-            where T : ResponseResultBase, new()
-        {
-            using var request = new HttpRequestMessage(method, relativeUrl);
-
-            // Content-Type: application/json отправляем на всех запросах (как в коллекции РБ-Софт),
-            // в том числе на GET без тела. Для этого всегда прикрепляем содержимое:
-            // JSON-тело для POST/PUT или пустое содержимое-носитель заголовка для GET/DELETE.
-            LastRequestBody = body != null ? JsonSerializer.Serialize(body, body.GetType(), BodyJsonOptions) : null;
-            var content = new StringContent(LastRequestBody ?? string.Empty, Encoding.UTF8);
-            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(JsonMediaType);
-            request.Content = content;
-
+            if (_disposed)
+                return FailResult(-1, "Коннектор закрыт. Создайте новый ServerKkm.");
+            if (string.IsNullOrWhiteSpace(Host) || Port is < 1 or > 65535)
+                return FailResult(-1, "Укажите Host и Port сервера ККМ.");
+            using var request = new HttpRequestMessage(method, RequestUri(relativeUrl));
             AddApiKey(request);
 
-            LastRequestInfo = $"{method} {_http.BaseAddress}{relativeUrl}";
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            if (method == HttpMethod.Post && body != null)
+            {
+                var json = JsonSerializer.Serialize(body, body.GetType(), BodyJsonOptions);
+                request.Content = new StringContent(json, Encoding.UTF8, JsonMediaType);
+            }
+
+            var timeout = Timeout <= TimeSpan.Zero ? DefaultTimeout : Timeout;
+            using var cts = new CancellationTokenSource(timeout);
+
             try
             {
-                using var response = await _http.SendAsync(request);
-                LastResponseBody = await response.Content.ReadAsStringAsync();
-                stopwatch.Stop();
-                LastDurationMs = stopwatch.ElapsedMilliseconds;
-                LastStatusCode = (int)response.StatusCode;
+                using var response = await _http.SendAsync(request, cts.Token);
+                var responseBody = await response.Content.ReadAsStringAsync(cts.Token);
+                var statusCode = (int)response.StatusCode;
 
-                if (string.IsNullOrWhiteSpace(LastResponseBody))
-                {
-                    var empty = FailResult<T>(LastStatusCode, DescribeHttpError(LastStatusCode, response.StatusCode.ToString()));
-                    LastResponseBody = ToErrorJson(empty);
-                    return empty;
-                }
+                if (string.IsNullOrWhiteSpace(responseBody))
+                    return FailResult(statusCode, DescribeHttpError(statusCode, response.StatusCode.ToString()));
 
                 try
                 {
-                    var parsed = JsonSerializer.Deserialize<T>(LastResponseBody, JsonOptions);
+                    var parsed = JsonSerializer.Deserialize<ResponseResult<JsonElement>>(responseBody, JsonOptions);
                     if (parsed != null)
                         return parsed;
                 }
                 catch (JsonException)
                 {
-                    // Ответ не JSON (часто HTML при 401) — сформируем понятную ошибку для консоли
                 }
 
-                var fail = FailResult<T>(LastStatusCode, DescribeHttpError(LastStatusCode, "некорректный ответ сервера"));
-                LastResponseBody = ToErrorJson(fail);
-                return fail;
+                return FailResult(statusCode, DescribeHttpError(statusCode, "некорректный ответ сервера"));
             }
             catch (HttpRequestException ex)
             {
-                stopwatch.Stop();
-                LastDurationMs = stopwatch.ElapsedMilliseconds;
-                LastStatusCode = 0;
-                var fail = FailResult<T>(0, $"Ошибка соединения: {ex.Message}");
-                LastResponseBody = ToErrorJson(fail);
-                return fail;
+                return FailResult(-1, $"Ошибка соединения: {ex.Message}");
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                stopwatch.Stop();
-                LastDurationMs = stopwatch.ElapsedMilliseconds;
-                LastStatusCode = 0;
-                var fail = FailResult<T>(0, "Превышено время ожидания ответа сервера");
-                LastResponseBody = ToErrorJson(fail);
-                return fail;
-            }
-            finally
-            {
-                stopwatch.Stop();
+                return FailResult(-2, "Превышено время ожидания ответа сервера");
             }
         }
 
-        private static T FailResult<T>(int code, string description) where T : ResponseResultBase, new()
-            => new() { Success = false, Code = code, Description = description };
+        private Uri RequestUri(string relativeUrl)
+        {
+            var queryStart = relativeUrl.IndexOf('?');
+            var path = queryStart < 0 ? relativeUrl : relativeUrl[..queryStart];
+            var query = queryStart < 0 ? "" : relativeUrl[(queryStart + 1)..];
 
-        private static string ToErrorJson(ResponseResultBase result) =>
-            JsonSerializer.Serialize(new
+            return new UriBuilder
             {
-                result.Success,
-                result.Code,
-                result.Description
-            });
+                Scheme = UseHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp,
+                Host = Host,
+                Port = Port,
+                Path = $"{ApiPath.TrimEnd('/')}/{path.TrimStart('/')}",
+                Query = query
+            }.Uri;
+        }
+
+        private static HttpClient CreateHttp()
+        {
+            var handler = new SocketsHttpHandler
+            {
+                PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1)
+            };
+
+            return new HttpClient(handler)
+            {
+                Timeout = System.Threading.Timeout.InfiniteTimeSpan
+            };
+        }
+
+        private static ResponseResult<JsonElement> FailResult(int code, string description)
+            => new() { Success = false, Code = code, Description = description };
 
         private static string DescribeHttpError(int statusCode, string fallback)
             => statusCode switch
@@ -187,22 +141,11 @@ namespace SkkmConnector.Internal
 
         private void AddApiKey(HttpRequestMessage request)
         {
-            // Реально отправляем заголовки только с непустыми значениями
             if (!string.IsNullOrEmpty(Token))
-                request.Headers.Add("api_key", Token);
+                request.Headers.TryAddWithoutValidation("api_key", Token);
 
             if (!string.IsNullOrEmpty(TerminalId))
-                request.Headers.Add("TerminalId", TerminalId);
-
-            // Content-Type уходит всегда как application/json (без charset)
-            LastRequestHeaders = new List<KeyValuePair<string, string>>
-            {
-                new("Content-Type", JsonMediaType),
-                new("api_key", Token ?? ""),
-                new("TerminalId", TerminalId ?? "")
-            };
+                request.Headers.TryAddWithoutValidation("TerminalId", TerminalId);
         }
-
-        public void Dispose() => _http.Dispose();
     }
 }

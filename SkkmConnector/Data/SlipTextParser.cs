@@ -4,6 +4,7 @@ namespace SkkmConnector.Internal;
 
 /// <summary>
 /// Разбор текста с разметкой в строки нефискального документа.
+/// Префиксы: [big], [center], [QR], [line], [line,dotted], [dotted].
 /// </summary>
 internal static class SlipTextParser
 {
@@ -12,76 +13,118 @@ internal static class SlipTextParser
         var positions = new List<DocPosition>();
 
         foreach (var rawLine in text.Replace("\r\n", "\n").Split('\n'))
+            positions.Add(ParseLine(rawLine));
+
+        return positions.ToArray();
+    }
+
+    /// <summary>
+    /// Одна строка: префиксы в тексте превращаются в SeparatorLine / Barcode / TextString.
+    /// </summary>
+    public static DocPosition ParseLine(string line, string? font = null, string? alignment = null)
+    {
+        PrintAlignment? parsedAlignment = ParseEnum<PrintAlignment>(alignment);
+        PrintFont? parsedFont = ParseEnum<PrintFont>(font);
+        BarcodeType? barcodeType = null;
+        LineStyle? lineStyle = null;
+        var hasLineTag = false;
+
+        if (line.StartsWith("[") && line.Contains(']'))
         {
-            string line = rawLine;
-            PrintAlignment? alignment = null;
-            PrintFont? font = null;
-            BarcodeType? barcodeType = null;
-            bool isSeparatorLine = false;
-            LineStyle lineStyle = LineStyle.Solid;
+            int close = line.IndexOf(']');
+            var tags = line[1..close]
+                .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim())
+                .ToArray();
 
-            if (line.StartsWith("[") && line.Contains("]"))
+            var recognized = false;
+
+            foreach (var tag in tags)
             {
-                int close = line.IndexOf(']');
-                var tags = line.Substring(1, close - 1)
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(t => t.Trim())
-                    .ToArray();
-                line = line.Substring(close + 1);
-
-                foreach (var tag in tags)
-                    if (string.Equals(tag, "line", StringComparison.OrdinalIgnoreCase))
-                        isSeparatorLine = true;
-
-                foreach (var tag in tags)
+                if (string.Equals(tag, "line", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (tag.Length == 0 || char.IsDigit(tag[0]))
-                        continue;
-
-                    if (isSeparatorLine && Enum.TryParse<LineStyle>(tag, ignoreCase: true, out var parsedLineStyle))
-                        lineStyle = parsedLineStyle;
-                    else if (Enum.TryParse<BarcodeType>(tag, ignoreCase: true, out var parsedBarcode))
-                        barcodeType = parsedBarcode;
-                    else if (Enum.TryParse<PrintAlignment>(tag, ignoreCase: true, out var parsedAlignment))
-                        alignment = parsedAlignment;
-                    else if (Enum.TryParse<PrintFont>(tag, ignoreCase: true, out var parsedFont))
-                        font = parsedFont;
+                    hasLineTag = true;
+                    recognized = true;
                 }
             }
 
-            if (isSeparatorLine)
+            foreach (var tag in tags)
             {
-                positions.Add(new DocPosition
-                {
-                    SeparatorLine = new SeparatorLine { LineStyle = lineStyle }
-                });
+                if (tag.Length == 0 || char.IsDigit(tag[0]))
+                    continue;
+
+                if (TryLineStyle(tag, hasLineTag, out var parsedLineStyle))
+                    lineStyle = parsedLineStyle;
+                else if (Enum.TryParse<BarcodeType>(tag, ignoreCase: true, out var parsedBarcode))
+                    barcodeType = parsedBarcode;
+                else if (Enum.TryParse<PrintAlignment>(tag, ignoreCase: true, out var parsedAlign))
+                    parsedAlignment = parsedAlign;
+                else if (Enum.TryParse<PrintFont>(tag, ignoreCase: true, out var parsedPrintFont))
+                    parsedFont = parsedPrintFont;
+                else
+                    continue;
+
+                recognized = true;
             }
-            else if (barcodeType != null)
-            {
-                positions.Add(new DocPosition
-                {
-                    Barcode = new Barcode
-                    {
-                        Type = barcodeType.ToString(),
-                        Value = line.Trim(),
-                        Alignment = alignment?.ToString().ToLowerInvariant()
-                    }
-                });
-            }
-            else
-            {
-                positions.Add(new DocPosition
-                {
-                    TextString = new TextString
-                    {
-                        Text = line,
-                        Font = font?.ToString(),
-                        Alignment = alignment?.ToString().ToLowerInvariant()
-                    }
-                });
-            }
+
+            // Префикс в квадратных скобках срезаем только если внутри распознан тег
+            // (center, dotted, QR, line…). Обычный текст вида "[Промо]" остаётся как есть.
+            if (recognized)
+                line = line[(close + 1)..];
         }
 
-        return positions.ToArray();
+        if (hasLineTag || (lineStyle != null && line.Length == 0))
+        {
+            return new DocPosition
+            {
+                SeparatorLine = new SeparatorLine { Style = lineStyle ?? LineStyle.Solid }
+            };
+        }
+
+        if (barcodeType != null)
+        {
+            return new DocPosition
+            {
+                Barcode = new BarcodeLine
+                {
+                    Type = barcodeType.ToString() ?? "",
+                    Barcode = line.Trim(),
+                    Alignment = parsedAlignment?.ToString().ToLowerInvariant()
+                }
+            };
+        }
+
+        return new DocPosition
+        {
+            TextString = new TextString
+            {
+                Text = line,
+                Font = parsedFont?.ToString(),
+                Alignment = parsedAlignment?.ToString().ToLowerInvariant()
+            }
+        };
+    }
+
+    /// <summary>
+    /// [dotted] / [dashed] / [solid] / [double] - линия.
+    /// [bold] - шрифт, линия только вместе с [line].
+    /// </summary>
+    private static bool TryLineStyle(string tag, bool hasLineTag, out LineStyle style)
+    {
+        if (!Enum.TryParse(tag, ignoreCase: true, out style))
+            return false;
+
+        if (style == LineStyle.Bold && !hasLineTag)
+            return false;
+
+        return true;
+    }
+
+    private static TEnum? ParseEnum<TEnum>(string? value) where TEnum : struct, Enum
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return Enum.TryParse<TEnum>(value, ignoreCase: true, out var parsed) ? parsed : null;
     }
 }

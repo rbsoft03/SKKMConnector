@@ -1,60 +1,45 @@
 namespace SkkmConnector;
-
-// Свойства подключения к серверу ККМ и кассира.
 public sealed partial class ServerKkm
 {
     // Подключение
 
     /// <summary>
-    /// Адрес сервера ККМ (IP или DNS).
+    /// Хост сервера ККМ (IP или DNS). Можно менять между запросами, пока программа запущена.
     /// </summary>
     public string Host { get; set; } = "localhost";
 
     /// <summary>
-    /// Порт сервера ККМ. По умолчанию 4398.
+    /// TCP-порт сервера ККМ. Можно менять между запросами, пока программа запущена.
     /// </summary>
     public int Port { get; set; } = 4398;
 
     /// <summary>
-    /// Адрес сервера ККМ одной строкой
-    /// Порт через двоеточие необязателен: localhost, 192.168.1.150:12345.
-    /// Без порта используется 4398.
+    /// HTTPS вместо HTTP
     /// </summary>
-    public string ServerAddress
-    {
-        get => Port == DefaultPort ? Host : $"{Host}:{Port}";
-        set
-        {
-            var connection = ParseServerAddress(value);
-            Host = connection.Host;
-            Port = connection.Port;
-        }
-    }
+    public bool UseHttps { get; set; }
 
     /// <summary>
-    /// Токен авторизации (заголовок api_key).
+    /// Таймаут запроса к серверу ККМ. По умолчанию 60 секунд.
+    /// </summary>
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// Токен авторизации (заголовок api_key). Можно менять между запросами, пока программа запущена.
     /// </summary>
     public string Token { get; set; } = "";
 
     /// <summary>
-    /// Идентификатор терминала (заголовок TerminalId).
+    /// Идентификатор терминала
     /// </summary>
     public string TerminalId { get; set; } = "";
 
     /// <summary>
-    /// Имя кассы на сервере ККМ. Обязательно для операций с устройством (чек, смена, ящик и т.п.).
+    /// Имя устройства.
     /// </summary>
     public string DeviceName { get; set; } = "";
 
-    // Кассир
-
     /// <summary>
-    /// ФИО кассира. Если пусто, сервер может подставить значение из настроек ККТ.
+    /// Сведения о кассире (продавце)
     /// </summary>
-    public string CashierName { get; set; } = "";
-
-    /// <summary>
-    /// ИНН кассира.
-    /// </summary>
-    public string CashierVatin { get; set; } = "";
+    public Cashier? Cashier { get; set; }
 }

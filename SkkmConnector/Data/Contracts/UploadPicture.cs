@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Тело запроса загрузки картинки на сервер: POST picture
+    /// Тело запроса загрузки картинки.
     /// </summary>
     internal class UploadPicture
     {
         /// <summary>
-        /// Имя кассы, зарегистрированной на сервере
+        /// Имя кассы
         /// </summary>
         [JsonPropertyName("DeviceName")]
         public string? DeviceName { get; set; }

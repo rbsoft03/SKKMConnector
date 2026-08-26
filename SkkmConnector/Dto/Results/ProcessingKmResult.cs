@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Результат проверки кода маркировки в ОИСМ.
+    /// ProcessingKMResult — результат проверки кода маркировки в ОИСМ (GET marking/km/result).
     /// </summary>
     public class ProcessingKmResult
     {
         /// <summary>
-        /// Идентификатор запроса КМ.
+        /// Идентификатор запроса КМ (тот же Guid, что в marking/km/request).
         /// </summary>
         [JsonPropertyName("Guid")]
         public string? Guid { get; set; }
@@ -38,7 +38,7 @@ namespace SkkmConnector
         public int HandleCode { get; set; }
 
         /// <summary>
-        /// Статус запроса: 0 — получен, 1 — ещё не получен, 2 — не может быть получен.
+        /// Статус получения результата от ОИСМ: 0 — получен; 1 — ещё не получен; 2 — не может быть получен.
         /// </summary>
         [JsonPropertyName("RequestStatus")]
         public int RequestStatus { get; set; }

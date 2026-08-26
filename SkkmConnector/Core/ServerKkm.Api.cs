@@ -6,33 +6,50 @@ namespace SkkmConnector;
 public sealed partial class ServerKkm
 {
     /// <summary>
-    /// Очищает данные чека перед новым (позиции, оплаты, покупатель, поля коррекции). Подключение и кассир сохраняются.
+    /// Очистка входных данных перед новым запросом и результаты прошлого вызова.
     /// </summary>
     public void NewRequest()
     {
         PaymentType = (int)CheckType.Sale;
         TaxVariant = (int)TaxSystem.ОСН;
         Electronically = false;
+        OperationOnline = false;
+        TimeZone = null;
         TextBefore = "";
         TextAfter = "";
-        CustomerInfo = "";
-        CustomerVatin = "";
-        CustomerEmail = "";
-        CustomerPhone = "";
-        PayCash = 0;
-        PayElectronic = 0;
-        PayCredit = 0;
-        PayAdvance = 0;
-        PayProvision = 0;
+        SaleLocation = "";
+        SaleAddress = "";
+        SenderEmail = "";
+        AdditionalAttribute = "";
+        IndustryAttribute = null;
+        UserAttribute = null;
+        OperationalAttribute = null;
+        ElectronicPayments.Clear();
+        AgentSign = null;
+        Agent = null;
+        Vendor = null;
+        Customer = null;
+        Payments = new Payments();
         Positions.Clear();
-        IsCorrection = false;
-        CorrectionType = CorrectionTypes.Самостоятельно;
-        CorrectionDescription = "";
-        CorrectionDate = default;
-        CorrectionNumber = "";
-        CorrectedCheckNumber = "";
+        CorrectionData = null;
+        Correction105Taxes = null;
         CashAmount = 0;
         TextForPrint = "";
+        PictureName = "";
+        PictureBase64 = "";
+        PictureAlignment = 2;
+        MarkingCode = "";
+        PlannedStatus = 1;
+        MarkingQuantity = 1;
+        MeasureOfQuantity = 0;
+        FractionalQuantityNumerator = 0;
+        FractionalQuantityDenominator = 0;
+        NotSendToServer = false;
+        WaitForResult = false;
+        RequestKmGuid = "";
+        ConfirmationType = 0;
+        ShiftsFrom = DateTime.Today.AddDays(-7);
+        ShiftsTo = DateTime.Today;
         DocumentId = "";
         FiscalSign = "";
         ShiftNumber = 0;
@@ -49,109 +66,39 @@ public sealed partial class ServerKkm
         ErrorDescription = "";
         LastResult = default;
         FiscalResult = null;
-        LastStatusCode = 0;
-        LastDurationMs = 0;
-        LastRequestInfo = null;
-        LastRequestBody = null;
-        LastResponseBody = null;
-        LastRequestHeaders = Array.Empty<KeyValuePair<string, string>>();
+        MarkingCheck = null;
+        MarkingProcessing = null;
+        Check = null;
+        Checks = [];
+        TaskStatus = null;
+        PrintForm = [];
+        Shifts = [];
     }
 
     /// <summary>
-    /// Добавляет фискальную строку в чек.
+    /// Проверка доступности сервера ККМ. Не требует передачи ключа доступа (api_key)
     /// </summary>
-    /// <param name="name">Наименование. Обязательно для печати.</param>
-    /// <param name="quantity">Количество. По умолчанию 1.</param>
-    /// <param name="measurementUnit">Единица измерения. По умолчанию «шт».</param>
-    /// <param name="price">Цена с учётом скидки.</param>
-    /// <param name="sum">Сумма позиции. 0 — считается как количество × цена.</param>
-    /// <param name="discountSum">Сумма скидки.</param>
-    /// <param name="tax">Ставка НДС: none, 0, 10, 20, 22, 10/110, 20/120, 22/122.</param>
-    /// <param name="taxSum">Сумма НДС.</param>
-    /// <param name="department">Секция / отдел.</param>
-    /// <param name="signCalculationObject">Признак предмета расчёта. По умолчанию 4 — услуга.</param>
-    /// <param name="signMethodCalculation">Признак способа расчёта. По умолчанию 1 — предоплата полная.</param>
-    /// <returns>Добавленная строка. Дальше можно заполнить маркировку, агента, акциз.</returns>
-    public CheckLine AddFiscalLine(
-        string name = "",
-        decimal quantity = 1,
-        string measurementUnit = "шт",
-        decimal price = 0,
-        decimal sum = 0,
-        decimal discountSum = 0,
-        string tax = "none",
-        decimal taxSum = 0,
-        int department = 0,
-        int signCalculationObject = 4,
-        int signMethodCalculation = 1)
+    public async Task Ping()
     {
-        var line = new CheckLine
-        {
-            IsFiscalLine = true,
-            Name = name,
-            Quantity = quantity,
-            MeasurementUnit = measurementUnit,
-            Price = price,
-            Sum = sum,
-            DiscountSum = discountSum,
-            Tax = tax,
-            TaxSum = taxSum,
-            Department = department,
-            SignCalculationObject = signCalculationObject,
-            SignMethodCalculation = signMethodCalculation
-        };
-        Positions.Add(line);
-        return line;
+        await Get("ping");
     }
 
     /// <summary>
-    /// Добавляет нефискальную строку. На сумму чека не влияет.
+    /// Получение списка зарегистрированных ККТ
     /// </summary>
-    /// <param name="text">Текст на чеке.</param>
-    /// <param name="barcode">Значение штрихкода.</param>
-    /// <param name="barcodeType">Тип штрихкода: QR, EAN13, CODE128 и др.</param>
-    public CheckLine AddNonFiscalLine(
-        string text = "",
-        string barcode = "",
-        string barcodeType = "")
+    public async Task GetDeviceList()
     {
-        var line = new CheckLine
-        {
-            IsFiscalLine = false,
-            Name = text,
-            Barcode = barcode,
-            BarcodeType = barcodeType
-        };
-        Positions.Add(line);
-        return line;
+        await Get("kkt/list");
+        Devices = ReadResult<DeviceListResponse[]>() ?? [];
     }
 
     /// <summary>
-    /// Проверка связи с сервером ККМ (GET ping).
+    /// Получение подробной информации об устройстве ККТ
     /// </summary>
-    public Task Ping() => Exec(async transport =>
+    public async Task Connect()
     {
-        var result = await transport.Get<ResponseResult<PingResponse>>("ping");
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Список устройств на сервере. Результат — <see cref="Devices"/>.
-    /// </summary>
-    public Task GetDeviceList() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<DeviceListResponse[]>>("kkt/list");
-        Devices = result.Success && result.Result != null ? result.Result : [];
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Подключение к кассе. Результат — <see cref="Kkt"/>.
-    /// </summary>
-    public Task Connect() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<DataKkt>>($"kkt?device={Uri.EscapeDataString(DeviceName)}");
-        Kkt = result.Success ? result.Result : null;
+        await Get($"kkt?{DeviceQuery}");
+        Kkt = ReadResult<DataKkt>();
         if (Kkt?.Status != null)
             Status = Kkt.Status;
         if (Kkt?.Device != null)
@@ -160,254 +107,429 @@ public sealed partial class ServerKkm
             LineLength = Kkt.Status.LineLength;
         if (!string.IsNullOrWhiteSpace(Kkt?.Fn?.SaleLocation))
             SaleLocation = Kkt!.Fn!.SaleLocation!;
-        Apply(result);
-    });
+    }
 
     /// <summary>
-    /// Текущее состояние ККМ. Результат — <see cref="Status"/>.
+    /// Получение расширенного статуса ККТ
     /// </summary>
-    public Task GetStatus() => Exec(async transport =>
+    public async Task GetStatus()
     {
-        var result = await transport.Get<ResponseResult<KktStatus>>($"kkt/status?device={Uri.EscapeDataString(DeviceName)}");
-        Status = result.Success ? result.Result : null;
-        if (Status != null)
+        await Get($"kkt/status?{DeviceQuery}");
+        Status = ReadResult<KktStatus>();
+        if (Status == null)
+            return;
+        LineLength = Status.LineLength;
+        ShiftNumber = Status.ShiftNumber;
+        CheckNumber = Status.DocNumber;
+    }
+
+    /// <summary>
+    /// Получение краткого статуса смены и очереди ОФД
+    /// </summary>
+    public async Task GetShiftStatus()
+    {
+        await Get($"kkt/shift/status?{DeviceQuery}");
+        ShiftStatus = ReadResult<ResponseCurrentStatus>();
+        if (ShiftStatus == null)
+            return;
+        ShiftNumber = ShiftStatus.ShiftNumber;
+        CheckNumber = ShiftStatus.CheckNumber;
+    }
+
+    /// <summary>
+    /// Открытие кассовой смены
+    /// </summary>
+    public async Task OpenShift()
+    {
+        await Post("shift/open", CheckBase());
+    }
+
+    /// <summary>
+    /// Закрытие кассовой смены (Z-отчёт)
+    /// </summary>
+    public async Task CloseShift()
+    {
+        await Post("shift/z", CheckBase());
+    }
+
+    /// <summary>
+    /// Формирование X-отчёта (без закрытия смены)
+    /// </summary>
+    public async Task ReportX()
+    {
+        await Post("shift/x", CheckBase());
+    }
+
+    /// <summary>
+    /// Формирование отчёта о текущем состоянии расчётов
+    /// </summary>
+    public async Task ReportSettlement()
+    {
+        await Post("report/settlement", CheckBase());
+    }
+
+    /// <summary>
+    /// Возвращает X-отчёт по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetReportX()
+    {
+        await GetDocumentById("shift/x");
+    }
+
+    /// <summary>
+    /// Возвращает Z-отчёт по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetReportZ()
+    {
+        await GetDocumentById("shift/z");
+    }
+
+    /// <summary>
+    /// Возвращает результат открытия смены по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetOpenShift()
+    {
+        await GetDocumentById("shift/open");
+    }
+
+    /// <summary>
+    /// Возвращает отчёт о состоянии расчётов по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetReportSettlement()
+    {
+        await GetDocumentById("report/settlement");
+    }
+
+    /// <summary>
+    /// Получение необнуляемых (накопительных) счётчиков ККТ
+    /// </summary>
+    public async Task GetOverAll()
+    {
+        await Get($"kkt/counters/overall?{DeviceQuery}");
+        NonZeroSum = ReadResult<OverallTotals>()?.Counters?.Sales?.Sum ?? 0;
+    }
+
+    /// <summary>
+    /// Получение максимальной ширины строки чека устройства
+    /// </summary>
+    public async Task GetLineLength()
+    {
+        await Get($"kkt/lineLength?{DeviceQuery}");
+        var length = ReadResult<LineLengthV2>();
+        if (length == null)
+            return;
+        LineLength = length.LineLength;
+        LineLengthPixels = length.LineLengthPixels;
+    }
+
+    /// <summary>
+    /// Получение последней операции из базы сервера
+    /// </summary>
+    public async Task GetLastOperation()
+    {
+        await Get("operation/last");
+        var operation = ReadResult<LastOperationDto>();
+        if (operation == null)
+            return;
+        LastOperationDate = operation.Date;
+        LastOperationType = operation.TaskType;
+        LastOperationDocNumber = operation.DocNumber;
+        LastOperationShiftNumber = operation.ShiftNumber;
+        LastOperationSum = operation.Sum;
+    }
+
+    /// <summary>
+    /// Получение счётчиков за смену
+    /// </summary>
+    public async Task GetTotals()
+    {
+        await Get($"kkt/counters/shift?{DeviceQuery}");
+        ShiftTotals = ReadResult<ResShiftTotal>();
+    }
+
+    /// <summary>
+    /// Получение списка Z-отчётов за период
+    /// </summary>
+    public async Task GetShiftList()
+    {
+        await GetReportList("shift/z/list");
+    }
+
+    /// <summary>
+    /// Получение списка открытий смен за период
+    /// </summary>
+    public async Task GetOpenShiftList()
+    {
+        await GetReportList("shift/open/list");
+    }
+
+    /// <summary>
+    /// Получение списка X-отчётов за период
+    /// </summary>
+    public async Task GetReportXList()
+    {
+        await GetReportList("shift/x/list");
+    }
+
+    /// <summary>
+    /// Список отчётов о состоянии расчётов по устройству за период
+    /// </summary>
+    public async Task GetReportSettlementList()
+    {
+        await GetReportList("report/settlement/list");
+    }
+
+    /// <summary>
+    /// Печать кассового чека
+    /// </summary>
+    public async Task PrintCheck()
+    {
+        await Post("check", CheckBody());
+    }
+
+    /// <summary>
+    /// Асинхронно поставить фискальный чек в очередь печати
+    /// </summary>
+    public async Task PrintCheckAsync()
+    {
+        await Post("check/async", CheckBody());
+    }
+
+    /// <summary>
+    /// Печать чека коррекции для ФФД 1.2
+    /// </summary>
+    public async Task PrintCheckCorrection120()
+    {
+        await Post("correction120", Correction120Body());
+    }
+
+    /// <summary>
+    /// Асинхронно печатает чек коррекции для ФФД 1.2
+    /// </summary>
+    public async Task PrintCheckCorrection120Async()
+    {
+        await Post("correction120/async", Correction120Body());
+    }
+
+    /// <summary>
+    /// Печать чека коррекции для ФФД 1.0.5
+    /// </summary>
+    public async Task PrintCheckCorrection105()
+    {
+        await Post("correction105", Correction105Body());
+    }
+
+    /// <summary>
+    /// Асинхронно ставит печать чека коррекции для ФФД 1.0.5.
+    /// </summary>
+    public async Task PrintCheckCorrection105Async()
+    {
+        await Post("correction105/async", Correction105Body());
+    }
+
+    /// <summary>
+    /// Возвращает чек коррекции ФФД 1.2 по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetCorrection120()
+    {
+        await GetDocumentById("correction120");
+    }
+
+    /// <summary>
+    /// Получение списка чеков коррекции ФФД 1.2
+    /// </summary>
+    public async Task GetCorrection120List()
+    {
+        await GetCheckList("correction120/list");
+    }
+
+    /// <summary>
+    /// Возвращает чек коррекции ФФД 1.0.5 по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetCorrection105()
+    {
+        await GetDocumentById("correction105");
+    }
+
+    /// <summary>
+    /// Получение списка чеков коррекции ФФД 1.0.5
+    /// </summary>
+    public async Task GetCorrection105List()
+    {
+        await GetCheckList("correction105/list");
+    }
+
+    /// <summary>
+    /// Получение списка чеков за смену
+    /// </summary>
+    public async Task GetChecksByShift()
+    {
+        await Get($"check/list?{DeviceQuery}&shift={ShiftNumber}");
+        Checks = ReadResult<CheckDocument[]>() ?? [];
+    }
+
+    /// <summary>
+    /// Возвращает статус выполнения задания по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetTaskStatus()
+    {
+        await Get($"task/status?{IdQuery}");
+        TaskStatus = ReadResult<ResponseTaskStatus>();
+        if (TaskStatus == null)
+            return;
+        if (!string.IsNullOrEmpty(TaskStatus.FiscalSign))
+            FiscalSign = TaskStatus.FiscalSign!;
+        if (TaskStatus.DocNumber > 0)
+            CheckNumber = TaskStatus.DocNumber;
+        if (TaskStatus.ShiftNumber > 0)
+            ShiftNumber = TaskStatus.ShiftNumber;
+        if (!string.IsNullOrEmpty(TaskStatus.DocId))
+            DocumentId = TaskStatus.DocId!;
+    }
+
+    /// <summary>
+    /// Возвращает результат операции по идентификатору документа (docId)
+    /// </summary>
+    public async Task GetCheck()
+    {
+        await GetDocumentById("check");
+    }
+
+    /// <summary>
+    /// Получение фискального признака (ФП) по номеру фискального документа (ФД)
+    /// </summary>
+    public async Task GetFiscalSign()
+    {
+        await Get($"check/fiscalSign?docNumber={CheckNumber}&{DeviceQuery}");
+        if (Ok && LastResult.ValueKind == JsonValueKind.String)
+            FiscalSign = LastResult.GetString() ?? "";
+    }
+
+    /// <summary>
+    /// Печать копии чека
+    /// </summary>
+    public async Task PrintCheckCopy()
+    {
+        if (string.IsNullOrWhiteSpace(DocumentId))
+            await Post($"check/copy/last?{DeviceQuery}");
+        else
+            await Post("check/copy", new CheckbaseParameters { DeviceName = DeviceName, DocId = DocumentId });
+    }
+
+    /// <summary>
+    /// Возвращает печатную форму документа по его идентификатору (docId)
+    /// </summary>
+    public async Task GetPrintForm()
+    {
+        await Get($"task/form?{IdQuery}");
+        PrintForm = ReadResult<PrintFormLine[]>() ?? [];
+    }
+
+    /// <summary>
+    /// Регистрация операции внесения наличных в денежный ящик
+    /// </summary>
+    public async Task CashIn()
+    {
+        await Post("cashin", CashBody());
+    }
+
+    /// <summary>
+    /// Регистрация операции выемки наличных из денежного ящика
+    /// </summary>
+    public async Task CashOut()
+    {
+        await Post("cashout", CashBody());
+    }
+
+    /// <summary>
+    /// Открытие денежного ящика
+    /// </summary>
+    public async Task OpenCashdrawer()
+    {
+        await Post("cash/open", CheckBase());
+    }
+
+    /// <summary>
+    /// Получение остатка наличных в денежном ящике
+    /// </summary>
+    public async Task GetCash()
+    {
+        await Get($"cash?{DeviceQuery}");
+        CashBalance = ReadResult<CashSum>()?.Sum ?? 0;
+    }
+
+    /// <summary>
+    /// Возвращает результат операции внесения наличных по идентификатору операции (docId)
+    /// </summary>
+    public async Task GetCashIn()
+    {
+        await GetDocumentById("cashin");
+    }
+
+    /// <summary>
+    /// Получение списка операций внесения наличных по имени устройства
+    /// </summary>
+    public async Task GetCashInList()
+    {
+        await GetCheckList("cashin/list");
+    }
+
+    /// <summary>
+    /// Возвращает результат операции выемки наличных по идентификатору операции (docId)
+    /// </summary>
+    public async Task GetCashOut()
+    {
+        await GetDocumentById("cashout");
+    }
+
+    /// <summary>
+    /// Загрузка изображения в выбранную ККТ
+    /// </summary>
+    public async Task SendPicture()
+    {
+        await Post("picture", new UploadPicture
         {
-            LineLength = Status.LineLength;
-            ShiftNumber = Status.ShiftNumber;
-            CheckNumber = Status.DocNumber;
-        }
-        Apply(result);
-    });
+            DeviceName = DeviceName,
+            PictureName = PictureName,
+            Base64 = PictureBase64,
+            Alignment = PictureAlignment
+        });
+    }
 
     /// <summary>
-    /// Статус кассовой смены. Результат — <see cref="ShiftStatus"/>.
+    /// Получение списка изображений
     /// </summary>
-    public Task GetShiftStatus() => Exec(async transport =>
+    public async Task GetPictureList()
     {
-        var result = await transport.Get<ResponseResult<ResponseCurrentStatus>>($"kkt/shift/status?device={Uri.EscapeDataString(DeviceName)}");
-        ShiftStatus = result.Success ? result.Result : null;
-        if (ShiftStatus != null)
-        {
-            ShiftNumber = ShiftStatus.ShiftNumber;
-            CheckNumber = ShiftStatus.CheckNumber;
-        }
-        Apply(result);
-    });
+        await Get($"picture/list?{DeviceQuery}");
+        Pictures = ReadResult<List<Picture>>() ?? [];
+    }
 
     /// <summary>
-    /// Открыть смену.
+    /// Открытие сессии регистрации (проверки) кодов маркировки на ККТ
     /// </summary>
-    public Task OpenShift() => Exec(t => t.Post<ResponseResult<JsonElement>>("shift/open", BaseDocument()));
-
-    /// <summary>
-    /// Закрыть смену (Z-отчёт).
-    /// </summary>
-    public Task CloseShift() => Exec(t => t.Post<ResponseResult<JsonElement>>("shift/z", BaseDocument()));
-
-    /// <summary>
-    /// X-отчёт.
-    /// </summary>
-    public Task ReportX() => Exec(t => t.Post<ResponseResult<JsonElement>>("shift/x", BaseDocument()));
-
-    /// <summary>
-    /// Отчёт о текущем состоянии расчётов.
-    /// </summary>
-    public Task ReportSettlement() => Exec(t => t.Post<ResponseResult<JsonElement>>("report/settlement", BaseDocument()));
-
-    /// <summary>
-    /// Общие счётчики ККМ. Необнуляемая сумма — <see cref="NonZeroSum"/>.
-    /// </summary>
-    public Task GetOverAll() => Exec(async transport =>
+    public async Task OpenSessionRegistrationKM()
     {
-        var result = await transport.Get<ResponseResult<OverallTotals>>(
-            $"kkt/counters/overall?device={Uri.EscapeDataString(DeviceName)}");
-        NonZeroSum = result.Success ? result.Result?.Counters?.Sales?.Sum ?? 0 : 0;
-        Apply(result);
-    });
+        await Post("marking/session/open", new CheckbaseParameters { DeviceName = DeviceName });
+    }
 
     /// <summary>
-    /// Ширина строки чека. Результат — <see cref="LineLength"/>.
+    /// Закрытие сессии регистрации (проверки) кодов маркировки на ККТ
     /// </summary>
-    public Task GetLineLength() => Exec(async transport =>
+    public async Task CloseSessionRegistrationKM()
     {
-        var result = await transport.Get<ResponseResult<LineLengthV2>>(
-            $"kkt/lineLength?device={Uri.EscapeDataString(DeviceName)}");
-        if (result.Success && result.Result != null)
-        {
-            LineLength = result.Result.LineLength;
-            LineLengthPixels = result.Result.LineLengthPixels;
-        }
-        Apply(result);
-    });
+        await Post("marking/session/close", new CheckbaseParameters { DeviceName = DeviceName });
+    }
 
     /// <summary>
-    /// Последняя операция из базы сервера ККМ.
+    /// Локальная проверка кода маркировки на ККТ (ФФД 1.2)
     /// </summary>
-    public Task GetLastOperation() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<LastOperationDto>>("operation/last");
-        if (result.Success && result.Result != null)
-        {
-            LastOperationDate = result.Result.Date;
-            LastOperationType = result.Result.TaskType;
-            LastOperationDocNumber = result.Result.DocNumber;
-            LastOperationShiftNumber = result.Result.ShiftNumber;
-            LastOperationSum = result.Result.Sum;
-        }
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Итоги текущей смены. Результат — <see cref="ShiftTotals"/>.
-    /// </summary>
-    public Task GetTotals() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<ResShiftTotal>>($"kkt/counters/shift?device={Uri.EscapeDataString(DeviceName)}");
-        ShiftTotals = result.Success ? result.Result : null;
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Список смен за период <see cref="ShiftsFrom"/> и <see cref="ShiftsTo"/>.
-    /// </summary>
-    public Task GetShiftList() => Exec(t =>
-        t.Get<ResponseResult<JsonElement>>(
-            $"shift/z/list?device={Uri.EscapeDataString(DeviceName)}&from={ShiftsFrom:yyyy-MM-dd}&to={ShiftsTo:yyyy-MM-dd}"));
-
-    /// <summary>
-    /// Печатает кассовый чек по заполненным свойствам.
-    /// Обязательно заполнить: <see cref="DeviceName"/> (имя кассы), <see cref="PaymentType"/> (тип чека, по умолчанию продажа),
-    /// <see cref="TaxVariant"/> (система налогообложения, по умолчанию ОСН) и хотя бы одну фискальную позицию через <see cref="AddFiscalLine"/>.
-    /// Суммы оплат (<see cref="PayCash"/>, <see cref="PayElectronic"/>, <see cref="PayAdvance"/>, <see cref="PayCredit"/>, <see cref="PayProvision"/>) в сумме должны покрывать итог позиций.
-    /// Необязательно: покупатель (<see cref="CustomerInfo"/>, <see cref="CustomerEmail"/> и др.), тексты <see cref="TextBefore"/> и <see cref="TextAfter"/>, место расчётов <see cref="SaleLocation"/>.
-    /// Итог вызова — в <see cref="Ok"/> и <see cref="ErrorDescription"/>.
-    /// </summary>
-    public Task PrintCheck() => Exec(t => t.Post<ResponseResult<JsonElement>>("check", CheckBody()));
-
-    /// <summary>
-    /// Асинхронная печать чека: тело ставится в очередь сервера, возвращается сразу.
-    /// Свойства и требования те же, что у <see cref="PrintCheck"/>. Статус задачи потом смотрят через <see cref="GetTaskStatus"/>.
-    /// </summary>
-    public Task PrintCheckAsync() => Exec(t => t.Post<ResponseResult<JsonElement>>("check/async", CheckBody()));
-
-    /// <summary>
-    /// Печатает чек коррекции по ФФД 1.2.
-    /// Заполняется как обычный чек (см. <see cref="PrintCheck"/>), плюс данные коррекции:
-    /// <see cref="CorrectionType"/> (тип коррекции), <see cref="CorrectionDescription"/> (основание), <see cref="CorrectionDate"/> (дата),
-    /// при необходимости <see cref="CorrectionNumber"/> (номер предписания) и <see cref="CorrectedCheckNumber"/> (номер исправляемого чека).
-    /// </summary>
-    public Task PrintCheckCorrection120() => Exec(t => t.Post<ResponseResult<JsonElement>>("correction120", CorrectionBody()));
-
-    /// <summary>
-    /// Асинхронная печать чека коррекции ФФД 1.2: тело ставится в очередь сервера.
-    /// Свойства и требования те же, что у <see cref="PrintCheckCorrection120"/>.
-    /// </summary>
-    public Task PrintCheckCorrection120Async() => Exec(t => t.Post<ResponseResult<JsonElement>>("correction120/async", CorrectionBody()));
-
-    /// <summary>
-    /// Список чеков за смену <see cref="ShiftNumber"/>.
-    /// </summary>
-    public Task GetChecksByShift() => Exec(t =>
-        t.Get<ResponseResult<JsonElement>>(
-            $"check/list?device={Uri.EscapeDataString(DeviceName)}&shift={ShiftNumber}"));
-
-    /// <summary>
-    /// Статус задачи по <see cref="DocumentId"/>.
-    /// </summary>
-    public Task GetTaskStatus() => Exec(t =>
-        t.Get<ResponseResult<JsonElement>>($"task/status?id={Uri.EscapeDataString(DocumentId)}"));
-
-    /// <summary>
-    /// Получение чека по <see cref="DocumentId"/>.
-    /// </summary>
-    public Task GetCheck() => Exec(t =>
-        t.Get<ResponseResult<JsonElement>>($"check?id={Uri.EscapeDataString(DocumentId)}"));
-
-    /// <summary>
-    /// Копия чека: по <see cref="FiscalSign"/> или последняя.
-    /// </summary>
-    public Task PrintCheckCopy() => Exec(t =>
-        string.IsNullOrWhiteSpace(FiscalSign)
-            ? t.Post<ResponseResult<JsonElement>>($"check/copy/last?device={Uri.EscapeDataString(DeviceName)}")
-            : t.Post<ResponseResult<JsonElement>>("check/copy", new CheckbaseParameters
-            {
-                DeviceName = DeviceName,
-                DocId = FiscalSign
-            }));
-
-    /// <summary>
-    /// Печатная форма задачи по <see cref="DocumentId"/>.
-    /// </summary>
-    public Task GetPrintForm() => Exec(t =>
-        t.Get<ResponseResult<JsonElement>>($"task/form?id={Uri.EscapeDataString(DocumentId)}"));
-
-    /// <summary>
-    /// Внесение наличных (<see cref="CashAmount"/>).
-    /// </summary>
-    public Task CashIn() => Exec(t => t.Post<ResponseResult<JsonElement>>("cashin", CashDocument()));
-
-    /// <summary>
-    /// Выемка наличных (<see cref="CashAmount"/>).
-    /// </summary>
-    public Task CashOut() => Exec(t => t.Post<ResponseResult<JsonElement>>("cashout", CashDocument()));
-
-    /// <summary>
-    /// Открыть денежный ящик.
-    /// </summary>
-    public Task OpenCashdrawer() => Exec(t => t.Post<ResponseResult<JsonElement>>("cash/open", BaseDocument()));
-
-    /// <summary>
-    /// Остаток наличных. Результат — <see cref="CashBalance"/>.
-    /// </summary>
-    public Task GetCash() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<CashSum>>($"cash?device={Uri.EscapeDataString(DeviceName)}");
-        CashBalance = result.Success && result.Result != null ? result.Result.Sum : 0;
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Загрузить картинку на сервер.
-    /// </summary>
-    public Task SendPicture() => Exec(t => t.Post<ResponseResult<JsonElement>>("picture", new UploadPicture
-    {
-        DeviceName = DeviceName,
-        PictureName = PictureName,
-        Base64 = PictureBase64,
-        Alignment = PictureAlignment
-    }));
-
-    /// <summary>
-    /// Список картинок на сервере. Результат — <see cref="Pictures"/>.
-    /// </summary>
-    public Task GetPictureList() => Exec(async transport =>
-    {
-        var result = await transport.Get<ResponseResult<List<Picture>>>($"picture/list?device={Uri.EscapeDataString(DeviceName)}");
-        Pictures = result.Success && result.Result != null ? result.Result : [];
-        Apply(result);
-    });
-
-    /// <summary>
-    /// Открытие сессии регистрации кодов маркировки.
-    /// </summary>
-    public Task OpenSessionRegistrationKM() => Exec(t =>
-        t.Post<ResponseResult<JsonElement>>("marking/session/open", DeviceOnly()));
-
-    /// <summary>
-    /// Закрытие сессии регистрации кодов маркировки.
-    /// </summary>
-    public Task CloseSessionRegistrationKM() => Exec(t =>
-        t.Post<ResponseResult<JsonElement>>("marking/session/close", DeviceOnly()));
-
-    /// <summary>
-    /// Локальная проверка кода маркировки (ФФД 1.2). Результат — <see cref="MarkingCheck"/>.
-    /// </summary>
-    public Task RequestKM() => Exec(async transport =>
+    public async Task RequestKM()
     {
         if (string.IsNullOrWhiteSpace(RequestKmGuid))
             RequestKmGuid = Guid.NewGuid().ToString();
 
-        var result = await transport.Post<ResponseResult<RequestKmResult>>("marking/km/request", new RequestKmParameters
+        await Post("marking/km/request", new RequestKmParameters
         {
             DeviceName = DeviceName,
             RequestKM = new RequestKm
@@ -423,40 +545,46 @@ public sealed partial class ServerKkm
                 FractionalQuantityDenominator = FractionalQuantityDenominator > 0 ? FractionalQuantityDenominator : null
             }
         });
-        MarkingCheck = result.Success ? result.Result : null;
-        Apply(result);
-    });
+        MarkingCheck = ReadResult<RequestKmResult>();
+    }
 
     /// <summary>
-    /// Результат проверки кода маркировки в ОИСМ. Результат — <see cref="MarkingProcessing"/>.
+    /// Получение результата проверки кода маркировки в ОИСМ
     /// </summary>
-    public Task GetProcessingKMResult() => Exec(async transport =>
+    public async Task GetProcessingKMResult()
     {
-        var result = await transport.Get<ResponseResult<ProcessingKmResult>>(
-            $"marking/km/result?device={Uri.EscapeDataString(DeviceName)}");
-        MarkingProcessing = result.Success ? result.Result : null;
+        await Get($"marking/km/result?{DeviceQuery}");
+        MarkingProcessing = ReadResult<ProcessingKmResult>();
         if (!string.IsNullOrWhiteSpace(MarkingProcessing?.Guid))
             RequestKmGuid = MarkingProcessing!.Guid!;
-        Apply(result);
-    });
+    }
 
     /// <summary>
-    /// Подтверждение, что код маркировки включён в документ реализации.
+    /// Подтверждение, будет ли ранее проверенный код маркировки фактически включён в документ реализации. Действительно только в рамках открытой сессии регистрации
     /// </summary>
-    public Task ConfirmKM() => Exec(t => t.Post<ResponseResult<JsonElement>>("marking/km/confirm", new RequestConfirmKm
+    public async Task ConfirmKM()
     {
-        DeviceName = DeviceName,
-        GUID = RequestKmGuid,
-        ConfirmationType = ConfirmationType
-    }));
+        await Post("marking/km/confirm", new RequestConfirmKm
+        {
+            DeviceName = DeviceName,
+            GUID = RequestKmGuid,
+            ConfirmationType = ConfirmationType
+        });
+    }
 
     /// <summary>
-    /// Синхронная печать слипа (<see cref="TextForPrint"/>).
+    /// Печать нефискального документа
     /// </summary>
-    public Task PrintSlip() => Exec(t => t.Post<ResponseResult<JsonElement>>("slip", SlipBody()));
+    public async Task PrintSlip()
+    {
+        await Post("slip", SlipBody());
+    }
 
     /// <summary>
-    /// Асинхронная печать слипа.
+    /// Асинхронно поставить нефискальный документ в очередь печати
     /// </summary>
-    public Task PrintSlipAsync() => Exec(t => t.Post<ResponseResult<JsonElement>>("slip/async", SlipBody()));
+    public async Task PrintSlipAsync()
+    {
+        await Post("slip/async", SlipBody());
+    }
 }

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// Тело запроса печати нефискального документа: POST slip / POST slip/async.
+    /// Тело запроса печати нефискального документа.
     /// </summary>
     internal class DocumentParameters : CheckbaseParameters
     {

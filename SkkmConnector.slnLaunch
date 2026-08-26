@@ -7,14 +7,5 @@
         "Action": "Start"
       }
     ]
-  },
-  {
-    "Name": "TestForm",
-    "Projects": [
-      {
-        "Path": "SkkmForm\\SkkmForm.csproj",
-        "Action": "Start"
-      }
-    ]
   }
 ]

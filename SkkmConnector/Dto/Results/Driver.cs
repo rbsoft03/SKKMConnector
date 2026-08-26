@@ -3,12 +3,12 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Сведения о драйвере ККМ
+    /// Описание драйвера ККМ (DriverInfo).
     /// </summary>
     public class Driver
     {
         /// <summary>
-        /// Тип драйвера
+        /// Тип драйвера.
         /// </summary>
         [JsonPropertyName("Type")]
         public string? Type { get; set; }
@@ -20,7 +20,7 @@ namespace SkkmConnector
         public string? Version { get; set; }
 
         /// <summary>
-        /// Производитель драйвера
+        /// Данные поставщика.
         /// </summary>
         [JsonPropertyName("Vendor")]
         public string? Vendor { get; set; }

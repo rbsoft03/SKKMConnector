@@ -3,15 +3,18 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector
 {
     /// <summary>
-    /// Картинка на сервере (элемент списка после GetPictureList)
+    /// Элемент списка изображений (GET picture/list).
     /// </summary>
     public class Picture
     {
+        /// <summary>
+        /// Название изображения.
+        /// </summary>
         [JsonPropertyName("PictureName")]
         public string? PictureName { get; set; }
 
         /// <summary>
-        /// Выравнивание: 1 - слева, 2 - по центру, 3 - справа
+        /// Выравнивание: 1 — по левому краю; 2 — по центру; 3 — по правому краю.
         /// </summary>
         [JsonPropertyName("Alignment")]
         public int Alignment { get; set; }
