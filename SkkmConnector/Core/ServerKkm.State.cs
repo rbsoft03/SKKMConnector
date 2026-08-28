@@ -70,7 +70,7 @@ public sealed partial class ServerKkm
     public List<Picture> Pictures { get; private set; } = [];
 
     /// <summary>
-    /// Ширина строки чека в символах (GetLineLength / GetStatus / Connect).
+    /// Ширина строки чека в символах.
     /// </summary>
     public int LineLength { get; private set; }
 

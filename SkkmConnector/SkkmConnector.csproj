@@ -6,14 +6,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SkkmConnector</RootNamespace>
-    <AssemblyTitle>Коннектор Сервера ККМ</AssemblyTitle>
-    <Description>Коннектор Сервера ККМ. Заполняются свойства, вызываются методы, обмен с кассой скрыт внутри.</Description>
     <IsPackable>true</IsPackable>
     <PackageId>SkkmConnector</PackageId>
     <Version>1.20.0</Version>
-    <Authors>ООО РБ-Софт</Authors>
-    <Company>ООО РБ-Софт</Company>
-    <PackageTags>kkm;skkm;fiscal</PackageTags>
+    <Authors>rbsoft</Authors>
+    <Company>rbsoft</Company>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
