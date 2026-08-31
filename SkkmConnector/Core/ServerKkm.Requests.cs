@@ -128,9 +128,50 @@ public sealed partial class ServerKkm
     /// Позиции чека в модель запроса.
     /// </summary>
     private ApiPosition[] BuildPositions()
+        => ToApiPositions(Positions);
+
+    /// <summary>
+    /// Тело POST/PUT checkTemplate: позиции в обёртке FiscalString, как у печати чека.
+    /// </summary>
+    private CheckTemplateRequest CheckTemplateBody()
     {
+        var source = CheckTemplateParameters ?? new CheckTemplateParameters();
+        var document = source.Document;
+        return new CheckTemplateRequest
+        {
+            Name = source.Name,
+            Document = document == null
+                ? null
+                : new CheckTemplateDocumentRequest
+                {
+                    PaymentType = document.PaymentType,
+                    TaxVariant = document.TaxVariant,
+                    Customer = document.Customer,
+                    SenderEmail = string.IsNullOrWhiteSpace(document.SenderEmail) ? null : document.SenderEmail,
+                    SaleAddress = string.IsNullOrWhiteSpace(document.SaleAddress) ? null : document.SaleAddress,
+                    SaleLocation = string.IsNullOrWhiteSpace(document.SaleLocation) ? null : document.SaleLocation,
+                    Positions = ToApiPositions(document.Positions.Count > 0 ? document.Positions : Positions),
+                    Payments = document.Payments,
+                    ElectronicPaymentInfo = document.ElectronicPayments.Count == 0 ? null : document.ElectronicPayments,
+                    Electronically = document.Electronically,
+                    OperationalAttribute = document.OperationalAttribute,
+                    IndustryAttribute = document.IndustryAttribute,
+                    UserAttribute = document.UserAttribute,
+                    TimeZone = document.TimeZone,
+                    OperationOnline = document.OperationOnline,
+                    AdditionalAttribute = string.IsNullOrWhiteSpace(document.AdditionalAttribute) ? null : document.AdditionalAttribute,
+                    CorrectionData = document.CorrectionData
+                }
+        };
+    }
+
+    private static ApiPosition[] ToApiPositions(IEnumerable<Position>? positions)
+    {
+        if (positions == null)
+            return [];
+
         var result = new List<ApiPosition>();
-        foreach (var position in Positions)
+        foreach (var position in positions)
             result.Add(ToApi(position));
         return result.ToArray();
     }

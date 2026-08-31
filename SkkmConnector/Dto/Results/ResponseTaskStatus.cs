@@ -62,7 +62,7 @@ public sealed class ResponseTaskStatus
     public int DocNumber { get; set; }
 
     /// <summary>
-    /// Тип чека: 0 — текст, 1 — приход, 2 — возврат прихода, … 22 — открытие денежного ящика.
+    /// Тип чека
     /// </summary>
     [JsonPropertyName("TaskType")]
     public int TaskType { get; set; }

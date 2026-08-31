@@ -27,12 +27,12 @@ public sealed partial class ServerKkm
     public int CheckNumber { get; set; }
 
     /// <summary>
-    /// Начало даты отбора списка отчётов (формат гггг-мм-дд)
+    /// Начало периода отбора отчётов, чеков и операций
     /// </summary>
     public DateTime ShiftsFrom { get; set; } = DateTime.Today.AddDays(-7);
 
     /// <summary>
-    /// Конец даты отбора списка отчётов (формат гггг-мм-дд)
+    /// Конец периода отбора отчётов, чеков и операций
     /// </summary>
     public DateTime ShiftsTo { get; set; } = DateTime.Today;
 
@@ -70,9 +70,14 @@ public sealed partial class ServerKkm
     // Чек
 
     /// <summary>
-    /// Тип чека
+    /// Тип чека / задания (<see cref="CheckType"/>). В <see cref="GetOperationLast"/> уходит как <c>tasktype</c>.
     /// </summary>
     public int PaymentType { get; set; } = (int)CheckType.Sale;
+
+    /// <summary>
+    /// Только обработанные операции. Параметр <c>isProcessed</c> в <see cref="GetOperationLast"/>.
+    /// </summary>
+    public bool IsProcessed { get; set; }
 
     /// <summary>
     /// Система налогообложения (СНО)

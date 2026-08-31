@@ -77,7 +77,7 @@ internal static class SlipTextParser
         {
             return new DocPosition
             {
-                SeparatorLine = new SeparatorLine { Style = lineStyle ?? LineStyle.Solid }
+                SeparatorLine = new SeparatorLine { LineStyle = lineStyle ?? LineStyle.Solid }
             };
         }
 

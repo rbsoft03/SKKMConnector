@@ -69,6 +69,12 @@ public sealed class PrintFormLine
     public SeparatorLine? SeparatorLine { get; set; }
 
     /// <summary>
+    /// Изображение.
+    /// </summary>
+    [JsonPropertyName("Picture")]
+    public Picture? Picture { get; set; }
+
+    /// <summary>
     /// Штрихкод.
     /// </summary>
     [JsonPropertyName("Barcode")]

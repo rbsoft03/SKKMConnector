@@ -2,146 +2,134 @@ using System.Text.Json;
 
 namespace SkkmConnector;
 
-// Свойства-результаты последнего вызова.
 public sealed partial class ServerKkm
 {
-
-    // Результат последнего вызова
-
-    /// <summary>
-    /// Успех последнего вызова. Ответ каждого метода.
-    /// </summary>
+    /// <summary>Успех последнего вызова.</summary>
     public bool Ok { get; private set; }
 
-    /// <summary>
-    /// Код ошибки сервера. Ответ. 0 - нет ошибки.
-    /// </summary>
+    /// <summary>Код ошибки сервера. 0 — нет ошибки.</summary>
     public int ErrorCode { get; private set; }
 
-    /// <summary>
-    /// Текст ошибки сервера. Ответ. При успехе «OK» или пусто.
-    /// </summary>
+    /// <summary>Текст ошибки сервера.</summary>
     public string ErrorDescription { get; private set; } = "";
 
-    /// <summary>
-    /// Поле Result последнего ответа сервера (документы, статусы задач).
-    /// </summary>
+    /// <summary>Поле Result последнего ответа сервера.</summary>
     public JsonElement LastResult { get; private set; }
 
-    /// <summary>
-    /// Фискальные поля ответа (чек, коррекция, смена): ФП, номер ФД, смена, DocId.
-    /// Ответ. Из него обновляются <see cref="FiscalSign"/>, <see cref="CheckNumber"/>, <see cref="ShiftNumber"/>.
-    /// </summary>
+    /// <summary>Фискальный блок ответа.</summary>
     public FiscalResult? FiscalResult { get; private set; }
 
-    /// <summary>
-    /// Список устройств после <see cref="GetDeviceList"/>.
-    /// </summary>
+    /// <summary>Список устройств.</summary>
     public DeviceListResponse[] Devices { get; private set; } = [];
 
-    /// <summary>
-    /// Данные кассы после <see cref="Connect"/>.
-    /// </summary>
+    /// <summary>Данные кассы.</summary>
     public DataKkt? Kkt { get; private set; }
 
-    /// <summary>
-    /// Состояние ККМ после <see cref="GetStatus"/> / <see cref="Connect"/>.
-    /// </summary>
+    /// <summary>Состояние ККМ.</summary>
     public KktStatus? Status { get; private set; }
 
-    /// <summary>
-    /// Статус смены после <see cref="GetShiftStatus"/>.
-    /// </summary>
+    /// <summary>Статус смены.</summary>
     public ResponseCurrentStatus? ShiftStatus { get; private set; }
 
-    /// <summary>
-    /// Итоги смены после <see cref="GetTotals"/>.
-    /// </summary>
+    /// <summary>Итоги смены.</summary>
     public ResShiftTotal? ShiftTotals { get; private set; }
 
-    /// <summary>
-    /// Остаток наличных после <see cref="GetCash"/>.
-    /// </summary>
+    /// <summary>Остаток наличных.</summary>
     public decimal CashBalance { get; private set; }
 
-    /// <summary>
-    /// Список картинок после <see cref="GetPictureList"/>.
-    /// </summary>
+    /// <summary>Список картинок.</summary>
     public List<Picture> Pictures { get; private set; } = [];
 
-    /// <summary>
-    /// Ширина строки чека в символах.
-    /// </summary>
+    /// <summary>Ширина строки чека в символах.</summary>
     public int LineLength { get; private set; }
 
-    /// <summary>
-    /// Ширина печатной области в пикселях после <see cref="GetLineLength"/>.
-    /// </summary>
+    /// <summary>Ширина печатной области в пикселях.</summary>
     public int LineLengthPixels { get; private set; }
 
-    /// <summary>
-    /// Необнуляемая сумма продаж после <see cref="GetOverAll"/>.
-    /// </summary>
+    /// <summary>Необнуляемая сумма продаж.</summary>
     public decimal NonZeroSum { get; private set; }
 
-    /// <summary>
-    /// Дата последней операции после <see cref="GetLastOperation"/>.
-    /// </summary>
-    public DateTime LastOperationDate { get; private set; }
-
-    /// <summary>
-    /// Тип последней операции после <see cref="GetLastOperation"/>.
-    /// </summary>
-    public int LastOperationType { get; private set; }
-
-    /// <summary>
-    /// Номер документа последней операции.
-    /// </summary>
-    public int LastOperationDocNumber { get; private set; }
-
-    /// <summary>
-    /// Номер смены последней операции.
-    /// </summary>
-    public int LastOperationShiftNumber { get; private set; }
-
-    /// <summary>
-    /// Сумма документа последней операции.
-    /// </summary>
-    public decimal LastOperationSum { get; private set; }
-
-    /// <summary>
-    /// Результат локальной проверки КМ после <see cref="RequestKM"/>.
-    /// </summary>
+    /// <summary>Результат локальной проверки КМ.</summary>
     public RequestKmResult? MarkingCheck { get; private set; }
 
-    /// <summary>
-    /// Результат проверки КМ в ОИСМ после <see cref="GetProcessingKMResult"/>.
-    /// </summary>
+    /// <summary>Результат проверки КМ в ОИСМ.</summary>
     public ProcessingKmResult? MarkingProcessing { get; private set; }
 
-    /// <summary>
-    /// Документ после GetCheck / GetCorrection120 / GetCorrection105 / GetReportX / GetReportZ /
-    /// GetOpenShift / GetReportSettlement / GetCashIn / GetCashOut.
-    /// </summary>
+    /// <summary>Документ.</summary>
     public CheckDocument? Check { get; private set; }
 
-    /// <summary>
-    /// Список документов после GetChecksByShift / GetCorrection120List / GetCorrection105List / GetCashInList.
-    /// </summary>
+    /// <summary>Список документов.</summary>
     public CheckDocument[] Checks { get; private set; } = [];
 
-    /// <summary>
-    /// Статус задания после <see cref="GetTaskStatus"/>.
-    /// </summary>
+    /// <summary>Статус задания.</summary>
     public ResponseTaskStatus? TaskStatus { get; private set; }
 
-    /// <summary>
-    /// Печатная форма после <see cref="GetPrintForm"/>.
-    /// </summary>
+    /// <summary>Печатная форма.</summary>
     public PrintFormLine[] PrintForm { get; private set; } = [];
 
-    /// <summary>
-    /// Список отчётов после GetShiftList / GetOpenShiftList / GetReportXList / GetReportSettlementList.
-    /// </summary>
+    /// <summary>Список отчётов.</summary>
     public ShiftListItem[] Shifts { get; private set; } = [];
+
+    /// <summary>Версия сервера.</summary>
+    public string ServerVersion { get; private set; } = "";
+
+    /// <summary>Токен пользователя.</summary>
+    public UserToken? UserToken { get; private set; }
+
+    /// <summary>Список пользователей.</summary>
+    public ServiceUser[] Users { get; private set; } = [];
+
+    /// <summary>Настройки службы.</summary>
+    public ServiceSettings? ServiceSettingsResult { get; private set; }
+
+    /// <summary>Список пулов.</summary>
+    public string[] Pools { get; private set; } = [];
+
+    /// <summary>Очередь печати.</summary>
+    public QueueItem[] Queue { get; private set; } = [];
+
+    /// <summary>Состояние задания очереди.</summary>
+    public QueueTaskState? QueueTask { get; private set; }
+
+    /// <summary>Операция.</summary>
+    public DeviceTaskInfo? Operation { get; private set; }
+
+    /// <summary>История операции.</summary>
+    public OperationHistoryItem[] OperationHistory { get; private set; } = [];
+
+    /// <summary>TLV операции.</summary>
+    public string OperationTlv { get; private set; } = "";
+
+    /// <summary>Коды маркировки операции.</summary>
+    public OperationKmRow[] OperationKm { get; private set; } = [];
+
+    /// <summary>Связанные операции.</summary>
+    public DeviceTaskInfo[] RelatedOperations { get; private set; } = [];
+
+    /// <summary>Список операций.</summary>
+    public OperationListItem[] Operations { get; private set; } = [];
+
+    /// <summary>Шаблон печати.</summary>
+    public PrintTemplate? PrintTemplate { get; private set; }
+
+    /// <summary>Список шаблонов печати.</summary>
+    public PrintTemplate[] Templates { get; private set; } = [];
+
+    /// <summary>Шаблон чека.</summary>
+    public CheckTemplate? CheckTemplate { get; private set; }
+
+    /// <summary>Список шаблонов чека.</summary>
+    public CheckTemplateListItem[] CheckTemplates { get; private set; } = [];
+
+    /// <summary>Документ фискализации.</summary>
+    public FiscalizationDocument? FiscalizationDocument { get; private set; }
+
+    /// <summary>Список фискализаций.</summary>
+    public FiscalizationDocument[] Fiscalizations { get; private set; } = [];
+
+    /// <summary>Результат проверки маркировки.</summary>
+    public MarkingVerifyResult? MarkingVerify { get; private set; }
+
+    /// <summary>Картинка в Base64.</summary>
+    public string PictureBase64Result { get; private set; } = "";
 }

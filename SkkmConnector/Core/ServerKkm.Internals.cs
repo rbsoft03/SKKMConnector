@@ -9,6 +9,7 @@ public sealed partial class ServerKkm
 {
     private string DeviceQuery => $"device={Uri.EscapeDataString(DeviceName)}";
     private string IdQuery => $"id={Uri.EscapeDataString(DocumentId)}";
+    private string DocIdQuery => $"docId={Uri.EscapeDataString(DocumentId)}";
 
     private static readonly JsonSerializerOptions ResultJsonOptions = new()
     {
@@ -22,6 +23,8 @@ public sealed partial class ServerKkm
         _http.UseHttps = UseHttps;
         _http.Token = Token;
         _http.TerminalId = TerminalId;
+        _http.BasicAuthUser = AuthUserName;
+        _http.BasicAuthPassword = AuthPassword;
         _http.Timeout = Timeout;
         return _http;
     }
@@ -82,6 +85,26 @@ public sealed partial class ServerKkm
             ShiftNumber = fiscal.ShiftNumber;
     }
 
+    private PrintTemplate[] ReadTemplateList()
+    {
+        if (LastResult.ValueKind != JsonValueKind.Array)
+            return [];
+
+        var list = new List<PrintTemplate>();
+        foreach (var item in LastResult.EnumerateArray())
+        {
+            if (item.ValueKind == JsonValueKind.String)
+                list.Add(new PrintTemplate { Name = item.GetString() ?? "" });
+            else
+            {
+                var parsed = item.Deserialize<PrintTemplate>(ResultJsonOptions);
+                if (parsed != null)
+                    list.Add(parsed);
+            }
+        }
+        return list.ToArray();
+    }
+
     private T? ReadResult<T>()
     {
         if (LastResult.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
@@ -95,6 +118,13 @@ public sealed partial class ServerKkm
         {
             return default;
         }
+    }
+
+    private void ApplyOperation(DeviceTaskInfo? operation)
+    {
+        Operation = operation;
+        if (!string.IsNullOrEmpty(operation?.DocId))
+            DocumentId = operation.DocId;
     }
 
     private void ApplyDocument(CheckDocument? document)
@@ -127,14 +157,81 @@ public sealed partial class ServerKkm
         };
     }
 
-    private async Task Get(string path)
+    private CancellationTokenSource BeginCall()
     {
-        Apply(await Transport().Get(path));
+        var cts = new CancellationTokenSource();
+        lock (_callLock)
+            _callCts = cts;
+        return cts;
+    }
+
+    private void EndCall(CancellationTokenSource cts)
+    {
+        lock (_callLock)
+        {
+            if (ReferenceEquals(_callCts, cts))
+                _callCts = null;
+        }
+        cts.Dispose();
+    }
+
+    private async Task Get(string path, bool useBasicAuth = false)
+    {
+        var cts = BeginCall();
+        try
+        {
+            Apply(await Transport().Get(path, useBasicAuth, cts.Token));
+        }
+        finally
+        {
+            EndCall(cts);
+        }
     }
 
     private async Task Post(string path, object? body = null)
     {
-        Apply(await Transport().Post(path, body));
+        var cts = BeginCall();
+        try
+        {
+            Apply(await Transport().Post(path, body, cts.Token));
+        }
+        finally
+        {
+            EndCall(cts);
+        }
+    }
+
+    private async Task Put(string path, object? body = null)
+    {
+        var cts = BeginCall();
+        try
+        {
+            Apply(await Transport().Put(path, body, cts.Token));
+        }
+        finally
+        {
+            EndCall(cts);
+        }
+    }
+
+    private async Task Delete(string path)
+    {
+        var cts = BeginCall();
+        try
+        {
+            Apply(await Transport().Delete(path, cts.Token));
+        }
+        finally
+        {
+            EndCall(cts);
+        }
+    }
+
+    private string DateQuery(DateTime from, DateTime to)
+    {
+        var fromText = from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var toText = to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        return $"from={fromText}&to={toText}";
     }
 
     /// <summary>
@@ -158,11 +255,12 @@ public sealed partial class ServerKkm
     /// <summary>
     /// GET списка отчётов за период <see cref="ShiftsFrom"/>..<see cref="ShiftsTo"/>.
     /// </summary>
-    private async Task GetReportList(string path)
+    private async Task GetReportList(string path, string? extraQuery = null)
     {
-        var from = ShiftsFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        var to = ShiftsTo.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        await Get($"{path}?{DeviceQuery}&from={from}&to={to}");
+        var query = $"{DeviceQuery}&{DateQuery(ShiftsFrom, ShiftsTo)}";
+        if (!string.IsNullOrWhiteSpace(extraQuery))
+            query += $"&{extraQuery}";
+        await Get($"{path}?{query}");
         Shifts = ReadResult<ShiftListItem[]>() ?? [];
     }
 }

@@ -11,5 +11,5 @@ public sealed class SeparatorLine : Position
     /// Стиль разделительной линии
     /// </summary>
     [JsonPropertyName("lineStyle")]
-    public LineStyle Style { get; set; } = LineStyle.Solid;
+    public LineStyle LineStyle { get; set; } = LineStyle.Solid;
 }

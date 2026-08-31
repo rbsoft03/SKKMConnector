@@ -6,9 +6,9 @@ namespace SkkmConnector
     public enum CheckType
     {
         /// <summary>
-        /// Не используется.
+        /// Текст.
         /// </summary>
-        None = 0,
+        Text = 0,
 
         /// <summary>
         /// Продажа (приход).
@@ -49,5 +49,60 @@ namespace SkkmConnector
         /// Чек коррекции возврата расхода.
         /// </summary>
         CorrectionPurchaseReturn = 8,
+
+        /// <summary>
+        /// Слип.
+        /// </summary>
+        Slip = 9,
+
+        /// <summary>
+        /// Фискализация.
+        /// </summary>
+        Fiscalization = 10,
+
+        /// <summary>
+        /// Открытие смены.
+        /// </summary>
+        OpenShift = 11,
+
+        /// <summary>
+        /// Закрытие смены (Z-отчёт).
+        /// </summary>
+        CloseShift = 12,
+
+        /// <summary>
+        /// X-отчёт.
+        /// </summary>
+        ReportX = 13,
+
+        /// <summary>
+        /// Отчёт о состоянии расчётов.
+        /// </summary>
+        ReportSettlement = 14,
+
+        /// <summary>
+        /// Выемка.
+        /// </summary>
+        CashOut = 20,
+
+        /// <summary>
+        /// Внесение.
+        /// </summary>
+        CashIn = 21,
+
+        /// <summary>
+        /// Открытие денежного ящика.
+        /// </summary>
+        OpenCashDrawer = 22,
+
+        /// <summary>
+        /// Копия из ФН.
+        /// </summary>
+        CopyFromFn = 23,
+
+        /// <summary>
+        /// Дубликат документа.
+        /// </summary>
+        DocumentCopy = 24
     }
 }

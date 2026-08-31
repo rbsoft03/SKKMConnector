@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -5,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector.Internal
 {
     /// <summary>
-    /// HTTP-транспорт к серверу ККМ. 
+    /// HTTP-транспорт к серверу ККМ.
     /// </summary>
     internal sealed class KkmTransport : IDisposable
     {
@@ -33,13 +34,21 @@ namespace SkkmConnector.Internal
         public bool UseHttps { get; set; }
         public string? Token { get; set; }
         public string? TerminalId { get; set; }
+        public string? BasicAuthUser { get; set; }
+        public string? BasicAuthPassword { get; set; }
         public TimeSpan Timeout { get; set; } = DefaultTimeout;
 
-        internal Task<ResponseResult<JsonElement>> Get(string path)
-            => SendAsync(HttpMethod.Get, path, body: null);
+        internal Task<ResponseResult<JsonElement>> Get(string path, bool useBasicAuth = false, CancellationToken cancellationToken = default)
+            => SendAsync(HttpMethod.Get, path, body: null, useBasicAuth, cancellationToken);
 
-        internal Task<ResponseResult<JsonElement>> Post(string path, object? body = null)
-            => SendAsync(HttpMethod.Post, path, body);
+        internal Task<ResponseResult<JsonElement>> Post(string path, object? body = null, CancellationToken cancellationToken = default)
+            => SendAsync(HttpMethod.Post, path, body, cancellationToken: cancellationToken);
+
+        internal Task<ResponseResult<JsonElement>> Put(string path, object? body = null, CancellationToken cancellationToken = default)
+            => SendAsync(HttpMethod.Put, path, body, cancellationToken: cancellationToken);
+
+        internal Task<ResponseResult<JsonElement>> Delete(string path, CancellationToken cancellationToken = default)
+            => SendAsync(HttpMethod.Delete, path, body: null, cancellationToken: cancellationToken);
 
         public void Dispose()
         {
@@ -49,28 +58,38 @@ namespace SkkmConnector.Internal
             _http.Dispose();
         }
 
-        private async Task<ResponseResult<JsonElement>> SendAsync(HttpMethod method, string relativeUrl, object? body)
+        private async Task<ResponseResult<JsonElement>> SendAsync(
+            HttpMethod method,
+            string relativeUrl,
+            object? body,
+            bool useBasicAuth = false,
+            CancellationToken cancellationToken = default)
         {
             if (_disposed)
                 return FailResult(-1, "Коннектор закрыт. Создайте новый ServerKkm.");
             if (string.IsNullOrWhiteSpace(Host) || Port is < 1 or > 65535)
                 return FailResult(-1, "Укажите Host и Port сервера ККМ.");
-            using var request = new HttpRequestMessage(method, RequestUri(relativeUrl));
-            AddApiKey(request);
 
-            if (method == HttpMethod.Post && body != null)
+            using var request = new HttpRequestMessage(method, RequestUri(relativeUrl));
+            if (useBasicAuth)
+                AddBasicAuth(request);
+            else
+                AddApiKey(request);
+
+            if (body != null && method != HttpMethod.Get && method != HttpMethod.Delete)
             {
                 var json = JsonSerializer.Serialize(body, body.GetType(), BodyJsonOptions);
                 request.Content = new StringContent(json, Encoding.UTF8, JsonMediaType);
             }
 
             var timeout = Timeout <= TimeSpan.Zero ? DefaultTimeout : Timeout;
-            using var cts = new CancellationTokenSource(timeout);
+            using var timeoutCts = new CancellationTokenSource(timeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
             try
             {
-                using var response = await _http.SendAsync(request, cts.Token);
-                var responseBody = await response.Content.ReadAsStringAsync(cts.Token);
+                using var response = await _http.SendAsync(request, linkedCts.Token);
+                var responseBody = await response.Content.ReadAsStringAsync(linkedCts.Token);
                 var statusCode = (int)response.StatusCode;
 
                 if (string.IsNullOrWhiteSpace(responseBody))
@@ -91,6 +110,10 @@ namespace SkkmConnector.Internal
             catch (HttpRequestException ex)
             {
                 return FailResult(-1, $"Ошибка соединения: {ex.Message}");
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return FailResult(-3, "Запрос отменён");
             }
             catch (OperationCanceledException)
             {
@@ -146,6 +169,14 @@ namespace SkkmConnector.Internal
 
             if (!string.IsNullOrEmpty(TerminalId))
                 request.Headers.TryAddWithoutValidation("TerminalId", TerminalId);
+        }
+
+        private void AddBasicAuth(HttpRequestMessage request)
+        {
+            var user = BasicAuthUser ?? "";
+            var password = BasicAuthPassword ?? "";
+            var bytes = Encoding.UTF8.GetBytes($"{user}:{password}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytes));
         }
     }
 }
