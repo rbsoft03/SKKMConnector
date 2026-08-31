@@ -68,11 +68,11 @@ SkkmConnector/
 
 ### NuGet-пакет
 
-Пакет `SkkmConnector` устанавливается локально из файла `.nupkg`. Сам файл можно
-взять готовым или собрать из исходников - дальше установка одинаковая.
+Пакет `SkkmConnector` ставится локально из файла `.nupkg`: нужно указать папку
+с ним как источник NuGet. Дальше — два случая.
 
-**Готовый пакет.** В репозитории уже лежит собранный `SkkmConnector.1.25.5.nupkg`.
-Укажите папку с ним как источник NuGet и установите пакет в своё приложение:
+**У вас готовая версия.** В репозитории уже лежит собранный `SkkmConnector.1.25.5.nupkg`.
+Установите его из его папки:
 
 ```powershell
 dotnet add package SkkmConnector --version 1.25.5 --source "C:\путь\к\папке-с-nupkg"
@@ -80,8 +80,22 @@ dotnet add package SkkmConnector --version 1.25.5 --source "C:\путь\к\па�
 
 В `--source` указывается папка, где лежит файл `.nupkg`, а не путь к самому файлу.
 
-Второй вариант - прописать папку-источник в файле `nuget.config` рядом с решением.
-Тогда пакет будет виден и в командной строке, и в Visual Studio:
+**Вы изменили исходный код.** Сначала соберите свой пакет — упаковка создаст файл
+`SkkmConnector.<версия>.nupkg` в указанной папке:
+
+```powershell
+dotnet pack SkkmConnector\SkkmConnector.csproj -c Release -o "C:\мой-nupkg"
+```
+
+Затем установите собранный пакет из этой папки — той же командой, что и готовый:
+
+```powershell
+dotnet add package SkkmConnector --source "C:\мой-nupkg"
+```
+
+Чтобы не указывать `--source` каждый раз, папку-источник можно один раз прописать
+в `nuget.config` рядом с решением — тогда пакет виден и в командной строке, и в
+Visual Studio:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -96,13 +110,6 @@ dotnet add package SkkmConnector --version 1.25.5 --source "C:\путь\к\па�
 
 ```xml
 <PackageReference Include="SkkmConnector" Version="1.25.5" />
-```
-
-**Собрать пакет самому.** Соберите и упакуйте библиотеку - получится тот же файл
-`.nupkg`, который затем ставится способом выше:
-
-```powershell
-dotnet pack SkkmConnector\SkkmConnector.csproj -c Release -o "C:\путь\к\папке-с-nupkg"
 ```
 
 ### Ссылка на проект
