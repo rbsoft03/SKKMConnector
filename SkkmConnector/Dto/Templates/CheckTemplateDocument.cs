@@ -8,17 +8,17 @@ public sealed class CheckTemplateDocument
     /// <summary>
     /// Тип чека 
     /// </summary>
-    public int PaymentType { get; set; }
+    public CheckType PaymentType { get; set; }
 
     /// <summary>
     /// Система налогообложения
     /// </summary>
-    public int TaxVariant { get; set; }
+    public TaxSystem TaxVariant { get; set; }
 
     /// <summary>
     /// Часовая зона.
     /// </summary>
-    public int? TimeZone { get; set; }
+    public CheckTimeZone? TimeZone { get; set; }
 
     /// <summary>
     /// Признак расчёта в сети Интернет.

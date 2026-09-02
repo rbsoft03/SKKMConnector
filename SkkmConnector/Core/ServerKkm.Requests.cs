@@ -49,13 +49,13 @@ public sealed partial class ServerKkm
     private void FillCheck(CheckParameters check)
     {
         FillBase(check);
-        check.PaymentType = PaymentType;
-        check.TaxVariant = TaxVariant;
+        check.PaymentType = (int)PaymentType;
+        check.TaxVariant = (int)TaxVariant;
         check.Customer = Customer;
         check.SenderEmail = SenderEmail;
         check.SaleAddress = SaleAddress;
         check.SaleLocation = SaleLocation;
-        check.AgentSign = AgentSign;
+        check.AgentSign = AgentSign.HasValue ? (int)AgentSign.Value : null;
         check.AgentData = Agent;
         check.Vendor = Vendor;
         check.Positions = BuildPositions();
@@ -67,7 +67,7 @@ public sealed partial class ServerKkm
         check.OperationalAttribute = OperationalAttribute;
         check.IndustryAttribute = IndustryAttribute;
         check.UserAttribute = UserAttribute;
-        check.TimeZone = TimeZone;
+        check.TimeZone = TimeZone.HasValue ? (int)TimeZone.Value : null;
         check.OperationOnline = OperationOnline ? true : null;
         check.AdditionalAttribute = AdditionalAttribute;
     }
@@ -81,8 +81,8 @@ public sealed partial class ServerKkm
         var check = new Correction105Parameters
         {
             CorrectionData = CorrectionData,
-            PaymentType = PaymentType,
-            TaxVariant = TaxVariant,
+            PaymentType = (int)PaymentType,
+            TaxVariant = (int)TaxVariant,
             Payments = Payments,
             SumTaxNone = taxes?.SumTaxNone,
             SumTax0 = taxes?.SumTax0,
@@ -144,8 +144,8 @@ public sealed partial class ServerKkm
                 ? null
                 : new CheckTemplateDocumentRequest
                 {
-                    PaymentType = document.PaymentType,
-                    TaxVariant = document.TaxVariant,
+                    PaymentType = (int)document.PaymentType,
+                    TaxVariant = (int)document.TaxVariant,
                     Customer = document.Customer,
                     SenderEmail = string.IsNullOrWhiteSpace(document.SenderEmail) ? null : document.SenderEmail,
                     SaleAddress = string.IsNullOrWhiteSpace(document.SaleAddress) ? null : document.SaleAddress,
@@ -157,7 +157,7 @@ public sealed partial class ServerKkm
                     OperationalAttribute = document.OperationalAttribute,
                     IndustryAttribute = document.IndustryAttribute,
                     UserAttribute = document.UserAttribute,
-                    TimeZone = document.TimeZone,
+                    TimeZone = document.TimeZone.HasValue ? (int)document.TimeZone.Value : null,
                     OperationOnline = document.OperationOnline,
                     AdditionalAttribute = string.IsNullOrWhiteSpace(document.AdditionalAttribute) ? null : document.AdditionalAttribute,
                     CorrectionData = document.CorrectionData

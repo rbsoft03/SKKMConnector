@@ -2,6 +2,45 @@ namespace SkkmConnector
 {
     /// <summary>
     /// Тип штрихкода для печати в документе.
+    /// <para>
+    /// QR - QR-код
+    /// </para>
+    /// <para>
+    /// EAN13 - EAN-13
+    /// </para>
+    /// <para>
+    /// EAN8 - EAN-8
+    /// </para>
+    /// <para>
+    /// EAN13 - EAN-13
+    /// </para>
+    /// <para>
+    /// CODE39 - Code 39
+    /// </para>
+    /// <para>
+    /// CODE93 - Code 93
+    /// </para>
+    /// <para>
+    /// CODE128 - Code 128
+    /// </para>
+    /// <para>
+    /// UPCA - UPC-A
+    /// </para>
+    /// <para>
+    /// UPCE - UPC-E
+    /// </para>
+    /// <para>
+    /// ITF - Interleaved 2 of 5
+    /// </para>
+    /// <para>
+    /// CODABAR - Codabar
+    /// </para>
+    /// <para>
+    /// PDF417 - PDF417
+    /// </para>
+    /// <para>
+    /// CODE32 - Code 32
+    /// </para>
     /// </summary>
     public enum BarcodeType
     {

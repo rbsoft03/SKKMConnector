@@ -10,9 +10,9 @@ public sealed partial class ServerKkm
     /// </summary>
     public void NewRequest()
     {
-        PaymentType = (int)CheckType.Sale;
+        PaymentType = CheckType.Sale;
         IsProcessed = false;
-        TaxVariant = (int)TaxSystem.ОСН;
+        TaxVariant = TaxSystem.ОСН;
         Electronically = false;
         OperationOnline = false;
         TimeZone = null;
@@ -38,17 +38,17 @@ public sealed partial class ServerKkm
         TextForPrint = "";
         PictureName = "";
         PictureBase64 = "";
-        PictureAlignment = 2;
+        PictureAlignment = PictureAlignment.Center;
         MarkingCode = "";
-        PlannedStatus = 1;
+        PlannedStatus = MarkingPlannedStatus.Sold;
         MarkingQuantity = 1;
-        MeasureOfQuantity = 0;
+        MeasureOfQuantity = MeasureOfQuantity.Piece;
         FractionalQuantityNumerator = 0;
         FractionalQuantityDenominator = 0;
         NotSendToServer = false;
         WaitForResult = false;
         RequestKmGuid = "";
-        ConfirmationType = 0;
+        ConfirmationType = KmConfirmationType.Included;
         ShiftsFrom = DateTime.Today.AddDays(-7);
         ShiftsTo = DateTime.Today;
         DocumentId = "";
@@ -473,7 +473,7 @@ public sealed partial class ServerKkm
             DeviceName = DeviceName,
             PictureName = PictureName,
             Base64 = PictureBase64,
-            Alignment = PictureAlignment
+            Alignment = (int)PictureAlignment
         });
     }
 
@@ -519,9 +519,9 @@ public sealed partial class ServerKkm
                 NotSendToServer = NotSendToServer,
                 WaitForResult = WaitForResult,
                 MarkingCode = MarkingCode,
-                PlannedStatus = PlannedStatus,
+                PlannedStatus = (int)PlannedStatus,
                 Quantity = MarkingQuantity,
-                MeasureOfQuantity = MeasureOfQuantity,
+                MeasureOfQuantity = (int)MeasureOfQuantity,
                 FractionalQuantityNumerator = FractionalQuantityNumerator > 0 ? FractionalQuantityNumerator : null,
                 FractionalQuantityDenominator = FractionalQuantityDenominator > 0 ? FractionalQuantityDenominator : null
             }
@@ -549,7 +549,7 @@ public sealed partial class ServerKkm
         {
             DeviceName = DeviceName,
             GUID = RequestKmGuid,
-            ConfirmationType = ConfirmationType
+            ConfirmationType = (int)ConfirmationType
         });
     }
 
@@ -1037,7 +1037,7 @@ public sealed partial class ServerKkm
     public async Task GetOperationLast()
     {
         var processed = IsProcessed ? "true" : "false";
-        await Get($"operation/last?tasktype={PaymentType}&isProcessed={processed}");
+        await Get($"operation/last?tasktype={(int)PaymentType}&isProcessed={processed}");
         ApplyOperation(ReadResult<DeviceTaskInfo>());
     }
 

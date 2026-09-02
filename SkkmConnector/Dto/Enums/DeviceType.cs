@@ -1,7 +1,25 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Тип драйвера устройства.
+    /// Тип драйвера устройства:
+    /// <para>
+    /// Shtrih - Shtrih
+    /// </para>
+    /// <para>
+    /// Native1C - 1С(4.7)
+    /// </para>
+    /// <para>
+    /// AtolFRv10 - Atol
+    /// </para>
+    /// <para>
+    /// RrElectro - RrElectro
+    /// </para>
+    /// <para>
+    /// Native1C5000 - 1С(5.0)
+    /// </para>
+    /// <para>
+    /// EmulatorFR - Эмулятор
+    /// </para>
     /// </summary>
     public enum DeviceType
     {

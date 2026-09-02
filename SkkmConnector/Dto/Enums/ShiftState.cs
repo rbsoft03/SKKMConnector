@@ -1,7 +1,16 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Состояние кассовой смены.
+    /// Состояние кассовой смены:
+    /// <para>
+    /// Closed - Смена закрыта
+    /// </para>
+    /// <para>
+    /// Opened - Смена открыта
+    /// </para>
+    /// <para>
+    /// Expired - Смена истекла (открыта более 24 часов)
+    /// </para>
     /// </summary>
     public enum ShiftState
     {

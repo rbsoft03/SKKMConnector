@@ -1,7 +1,37 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Шрифт текстовой строки документа.
+    /// Шрифт текстовой строки документа:
+    /// <para>
+    /// Normal - Обычный
+    /// </para>
+    /// <para>
+    /// Bold - Жирный
+    /// </para>
+    /// <para>
+    /// Small - Мелкий
+    /// </para>
+    /// <para>
+    /// Medium - Средний
+    /// </para>
+    /// <para>
+    /// Big - Крупный
+    /// </para>
+    /// <para>
+    /// H1 - Заголовок 1
+    /// </para>
+    /// <para>
+    /// H2 - Заголовок 2
+    /// </para>
+    /// <para>
+    /// H3 - Заголовок 3
+    /// </para>
+    /// <para>
+    /// H4 - Заголовок 4
+    /// </para>
+    /// <para>
+    /// H5 - Заголовок 5
+    /// </para>
     /// </summary>
     public enum PrintFont
     {

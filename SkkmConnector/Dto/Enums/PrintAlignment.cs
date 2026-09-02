@@ -1,7 +1,19 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Выравнивание строки или штрихкода при печати
+    /// Выравнивание строки или штрихкода при печати:
+    /// <para>
+    /// Left - По левому краю
+    /// </para>
+    /// <para>
+    /// Right - По правому краю
+    /// </para>
+    /// <para>
+    /// Center - По центру
+    /// </para>
+    /// <para>
+    /// Width - На всю ширину
+    /// </para>
     /// </summary>
     public enum PrintAlignment
     {

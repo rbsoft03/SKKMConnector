@@ -58,7 +58,7 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Выравнивание изображения при печати
     /// </summary>
-    public int PictureAlignment { get; set; } = 2;
+    public PictureAlignment PictureAlignment { get; set; } = PictureAlignment.Center;
 
     // Слип
 
@@ -70,9 +70,9 @@ public sealed partial class ServerKkm
     // Чек
 
     /// <summary>
-    /// Тип чека / задания (<see cref="CheckType"/>). В <see cref="GetOperationLast"/> уходит как <c>tasktype</c>.
+    /// Тип чека / задания
     /// </summary>
-    public int PaymentType { get; set; } = (int)CheckType.Sale;
+    public CheckType PaymentType { get; set; } = CheckType.Sale;
 
     /// <summary>
     /// Только обработанные операции. Параметр <c>isProcessed</c> в <see cref="GetOperationLast"/>.
@@ -82,12 +82,12 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Система налогообложения (СНО)
     /// </summary>
-    public int TaxVariant { get; set; } = (int)TaxSystem.ОСН;
+    public TaxSystem TaxVariant { get; set; } = TaxSystem.ОСН;
 
     /// <summary>
     /// Часовая зона
     /// </summary>
-    public int? TimeZone { get; set; }
+    public CheckTimeZone? TimeZone { get; set; }
 
     /// <summary>
     /// Формирование чека только в электронном виде
@@ -152,7 +152,7 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Признак агента
     /// </summary>
-    public int? AgentSign { get; set; }
+    public AgentType? AgentSign { get; set; }
 
     /// <summary>
     /// Данные агента
@@ -201,7 +201,7 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Планируемый статус товара
     /// </summary>
-    public int PlannedStatus { get; set; } = 1;
+    public MarkingPlannedStatus PlannedStatus { get; set; } = MarkingPlannedStatus.Sold;
 
     /// <summary>
     /// Количество товара
@@ -211,7 +211,7 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Мера количества предмета расчета
     /// </summary>
-    public int MeasureOfQuantity { get; set; }
+    public MeasureOfQuantity MeasureOfQuantity { get; set; }
 
     /// <summary>
     /// Числитель дробного количества товара
@@ -241,5 +241,5 @@ public sealed partial class ServerKkm
     /// <summary>
     /// Признак подтверждения кода маркировки
     /// </summary>
-    public int ConfirmationType { get; set; }
+    public KmConfirmationType ConfirmationType { get; set; }
 }

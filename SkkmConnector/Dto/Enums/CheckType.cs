@@ -1,7 +1,67 @@
 namespace SkkmConnector
 {
     /// <summary>
-    /// Тип чека
+    /// Тип чека:
+    /// <para>
+    /// Text - Текст
+    /// </para>
+    /// <para>
+    /// Sale - Продажа (приход)
+    /// </para>
+    /// <para>
+    /// SaleReturn - Возврат (возврат прихода)
+    /// </para>
+    /// <para>
+    /// Purchase - Покупка (расход)
+    /// </para>
+    /// <para>
+    /// PurchaseReturn - Возврат покупки (возврат расхода)
+    /// </para>
+    /// <para>
+    /// CorrectionSale - Чек коррекции прихода
+    /// </para>
+    /// <para>
+    /// CorrectionSaleReturn - Чек коррекции возврата прихода
+    /// </para>
+    /// <para>
+    /// CorrectionPurchase - Чек коррекции расхода
+    /// </para>
+    /// <para>
+    /// CorrectionPurchaseReturn - Чек коррекции возврата расхода
+    /// </para>
+    /// <para>
+    /// Slip - Слип, нефискальный документ
+    /// </para>
+    /// <para>
+    /// Fiscalization - Фискализация
+    /// </para>
+    /// <para>
+    /// OpenShift - Чек коррекции прихода
+    /// </para>
+    /// <para>
+    /// CloseShift - Z-отчёт
+    /// </para>
+    /// <para>
+    /// ReportX - X-отчёт
+    /// </para>
+    /// <para>
+    /// ReportSettlement - Отчёт о состоянии расчётов
+    /// </para>
+    /// <para>
+    /// CashOut - Выемка
+    /// </para>
+    /// <para>
+    /// CashIn - Внесение
+    /// </para>
+    /// <para>
+    /// OpenCashDrawer - Открытие денежного ящика
+    /// </para>
+    /// <para>
+    /// CopyFromFn - Копия из ФН
+    /// </para>
+    /// <para>
+    /// DocumentCopy - Дубликат документа
+    /// </para>
     /// </summary>
     public enum CheckType
     {
@@ -66,7 +126,7 @@ namespace SkkmConnector
         OpenShift = 11,
 
         /// <summary>
-        /// Закрытие смены (Z-отчёт).
+        /// Z-отчёт.
         /// </summary>
         CloseShift = 12,
 

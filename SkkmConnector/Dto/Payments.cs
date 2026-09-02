@@ -1,7 +1,22 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Оплаты
+/// Оплаты:
+/// <para>
+/// Cash - Сумма наличной оплаты
+/// </para>
+/// <para>
+/// ElectronicPayment - Сумма безналичными средствами
+/// </para>
+/// <para>
+/// AdvancePayment - Сумма предоплатой (зачетом аванса)
+/// </para>
+/// <para>
+/// Credit - Сумма постоплатой (в кредит)
+/// </para>
+/// <para>
+/// CashProvision - Сумма встречным предоставлением
+/// </para>
 /// </summary>
 public sealed class Payments
 {

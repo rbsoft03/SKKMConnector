@@ -57,12 +57,12 @@ public sealed class FiscalLine : Position
     /// <summary>
     /// Признак способа расчета
     /// </summary>
-    public int? SignMethodCalculation { get; set; }
+    public SignMethodCalculation? SignMethodCalculation { get; set; }
 
     /// <summary>
     /// Признак предмета расчета
     /// </summary>
-    public int? SignCalculationObject { get; set; }
+    public SignCalculationObject? SignCalculationObject { get; set; }
 
     /// <summary>
     /// Единица измерения предмета расчета
@@ -72,7 +72,7 @@ public sealed class FiscalLine : Position
     /// <summary>
     /// Мера количества предмета расчета
     /// </summary>
-    public int? MeasureOfQuantity { get; set; }
+    public MeasureOfQuantity? MeasureOfQuantity { get; set; }
 
     /// <summary>
     /// Сумма акциза с учетом копеек
@@ -93,7 +93,7 @@ public sealed class FiscalLine : Position
     /// Признак агента по предмету расчета
     /// </summary>
     [JsonPropertyName("SignSubjectCalculationAgent")]
-    public int? AgentSign { get; set; }
+    public AgentType? AgentSign { get; set; }
 
     /// <summary>
     /// Данные агента
