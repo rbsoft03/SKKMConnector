@@ -22,9 +22,84 @@ public sealed partial class ServerKkm
     public int ShiftNumber { get; set; }
 
     /// <summary>
-    /// Номер фискального документа
+    /// Номер фискального документа (ФД)
     /// </summary>
     public int CheckNumber { get; set; }
+
+    /// <summary>
+    /// Номер чека за смену
+    /// </summary>
+    public int CheckNumberInShift { get; set; }
+
+    /// <summary>
+    /// Регистрационный номер ККТ (РНМ)
+    /// </summary>
+    public string RnNumber { get; set; } = "";
+
+    /// <summary>
+    /// Адрес сайта ФНС
+    /// </summary>
+    public string FnsUrl { get; set; } = "";
+
+    /// <summary>
+    /// Время на сервере ККМ
+    /// </summary>
+    public string ServerDateTime { get; set; } = "";
+
+    /// <summary>
+    /// Дата и время документа по часам ФН 
+    /// </summary>
+    public string FiscalDateTime { get; set; } = "";
+
+    /// <summary>
+    /// Время ККТ
+    /// </summary>
+    public string DeviceDateTime { get; set; } = "";
+
+    /// <summary>
+    /// Состояние смены. Используйте enum <see cref="ShiftState"/>.
+    /// </summary>
+    public ShiftState? CurrentShiftState { get; set; }
+
+    /// <summary>
+    /// Количество непереданных в ОФД документов.
+    /// </summary>
+    public long BacklogDocumentsCount { get; set; }
+
+    /// <summary>
+    /// Номер первого непереданного документа.
+    /// </summary>
+    public long BacklogFirstDocumentNumber { get; set; }
+
+    /// <summary>
+    /// Дата и время первого непереданного документа.
+    /// </summary>
+    public DateTime? BacklogFirstDocumentDateTime { get; set; }
+
+    /// <summary>
+    /// Срок действия ФН.
+    /// </summary>
+    public string FnValidityDate { get; set; } = "";
+
+    /// <summary>
+    /// Остаток ресурса ФН в днях.
+    /// </summary>
+    public int FnDaysResources { get; set; }
+
+    /// <summary>
+    /// ФН присутствует
+    /// </summary>
+    public bool IsFnPresent { get; set; }
+
+    /// <summary>
+    /// Фискальный режим
+    /// </summary>
+    public bool IsFiscal { get; set; }
+
+    /// <summary>
+    /// Предупреждения ФН из ответа.
+    /// </summary>
+    public Warnings? FnWarnings { get; set; }
 
     /// <summary>
     /// Начало периода отбора отчётов, чеков и операций

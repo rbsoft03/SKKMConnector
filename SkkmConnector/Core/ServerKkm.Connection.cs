@@ -84,7 +84,7 @@ public sealed partial class ServerKkm
     public string UserId { get; set; } = "";
 
     /// <summary>
-    /// Номер ФН для печати копии чека по данным ФН.
+    /// Номер ФН
     /// </summary>
     public string FnNumber { get; set; } = "";
 

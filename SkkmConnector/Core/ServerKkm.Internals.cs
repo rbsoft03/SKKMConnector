@@ -36,6 +36,17 @@ public sealed partial class ServerKkm
         ErrorDescription = result.Description ?? "";
         LastResult = ToJsonElement(result.Result);
         FiscalResult = null;
+
+        FiscalSign = "";
+        if (LastResult.ValueKind == JsonValueKind.String)
+        {
+            DocumentId = "";
+            var id = LastResult.GetString();
+            if (Ok && !string.IsNullOrEmpty(id))
+                DocumentId = id!;
+            return;
+        }
+
         ExtractFiscalResult(LastResult);
     }
 
@@ -48,8 +59,10 @@ public sealed partial class ServerKkm
         return JsonSerializer.SerializeToElement(value, ResultJsonOptions);
     }
 
-    // Раскладывает результат фискальной операции из ответа: заполняет FiscalResult
-    // и переносит ключевые значения в плоские свойства 
+    /// <summary>
+    /// Разбор Result
+    /// заполняет <see cref="FiscalResult"/> и плоские свойства.
+    /// </summary>
     private void ExtractFiscalResult(JsonElement result)
     {
         if (result.ValueKind != JsonValueKind.Object)
@@ -67,22 +80,122 @@ public sealed partial class ServerKkm
 
         if (fiscal == null)
             return;
-        if (string.IsNullOrEmpty(fiscal.FiscalSign)
-            && fiscal.FiscalNumber == 0
-            && fiscal.ShiftNumber == 0
-            && string.IsNullOrEmpty(fiscal.DocId))
+
+        var hasFiscal =
+            !string.IsNullOrEmpty(fiscal.FiscalSign)
+            || fiscal.FiscalNumber > 0
+            || fiscal.ShiftNumber > 0
+            || !string.IsNullOrEmpty(fiscal.DocId)
+            || !string.IsNullOrEmpty(fiscal.FnNumber)
+            || !string.IsNullOrEmpty(fiscal.RnNumber)
+            || fiscal.CashSum.HasValue
+            || fiscal.CashDrawer != null
+            || fiscal.Backlog != null
+            || fiscal.OutputParameters != null
+            || fiscal.ShiftState.HasValue
+            || !string.IsNullOrEmpty(fiscal.DateTime)
+            || !string.IsNullOrEmpty(fiscal.FiscalDateTime)
+            || !string.IsNullOrEmpty(fiscal.FnsUrl);
+
+        if (!hasFiscal)
             return;
 
         FiscalResult = fiscal;
 
-        // Обновляем плоские свойства только если сервер реально вернул значение,
-        // чтобы не затирать их нулями на ответах без фискальных полей.
-        if (!string.IsNullOrEmpty(fiscal.FiscalSign))
-            FiscalSign = fiscal.FiscalSign!;
-        if (fiscal.FiscalNumber > 0)
-            CheckNumber = fiscal.FiscalNumber;
+        if (!string.IsNullOrEmpty(fiscal.DocId))
+            DocumentId = fiscal.DocId!;
         if (fiscal.ShiftNumber > 0)
             ShiftNumber = fiscal.ShiftNumber;
+        if (fiscal.FiscalNumber > 0)
+            CheckNumber = fiscal.FiscalNumber;
+        if (fiscal.ShiftState.HasValue)
+            CurrentShiftState = fiscal.ShiftState;
+        if (!string.IsNullOrEmpty(fiscal.FnsUrl))
+            FnsUrl = fiscal.FnsUrl!;
+        if (!string.IsNullOrEmpty(fiscal.FnNumber))
+        {
+            FnNumber = fiscal.FnNumber!;
+            IsFnPresent = true;
+        }
+        else if (fiscal.FnNumber != null)
+            IsFnPresent = false;
+        if (!string.IsNullOrEmpty(fiscal.RnNumber))
+        {
+            RnNumber = fiscal.RnNumber!;
+            IsFiscal = true;
+        }
+        else if (fiscal.RnNumber != null)
+            IsFiscal = false;
+        if (!string.IsNullOrEmpty(fiscal.FiscalSign))
+            FiscalSign = fiscal.FiscalSign!;
+        if (!string.IsNullOrEmpty(fiscal.DateTime))
+            ServerDateTime = fiscal.DateTime!;
+        if (!string.IsNullOrEmpty(fiscal.FiscalDateTime))
+        {
+            FiscalDateTime = fiscal.FiscalDateTime!;
+            DeviceDateTime = fiscal.FiscalDateTime!;
+        }
+
+        if (fiscal.CashDrawer != null)
+            CashBalance = fiscal.CashDrawer.Sum;
+        else if (fiscal.CashSum.HasValue)
+            CashBalance = fiscal.CashSum.Value;
+
+        ApplyBacklog(fiscal.Backlog);
+        ApplyOutputParameters(fiscal.OutputParameters);
+    }
+
+    private void ApplyBacklog(Backlog? backlog)
+    {
+        if (backlog == null)
+            return;
+
+        BacklogDocumentsCount = backlog.DocumentsCounter;
+        if (backlog.DocumentsCounter > 0)
+        {
+            BacklogFirstDocumentNumber = backlog.DocumentFirstNumber;
+            if (backlog.DocumentFirstDateTime != default)
+                BacklogFirstDocumentDateTime = backlog.DocumentFirstDateTime;
+        }
+        else
+        {
+            BacklogFirstDocumentNumber = 0;
+            BacklogFirstDocumentDateTime = null;
+        }
+    }
+
+    private void ApplyOutputParameters(FiscalOutputParameters? output)
+    {
+        if (output == null)
+            return;
+
+        if (output.NumberOfChecks > 0)
+            CheckNumberInShift = output.NumberOfChecks;
+        if (!string.IsNullOrEmpty(output.DateTime))
+        {
+            FiscalDateTime = output.DateTime!;
+            DeviceDateTime = output.DateTime!;
+        }
+        if (output.ShiftNumber > 0)
+            ShiftNumber = output.ShiftNumber;
+        if (output.CheckNumber > 0)
+            CheckNumber = output.CheckNumber;
+        CashBalance = output.CashBalance;
+        if (!string.IsNullOrEmpty(output.FnValidityDate))
+            FnValidityDate = output.FnValidityDate!;
+        if (output.ResourcesFn > 0)
+            FnDaysResources = output.ResourcesFn;
+        else if (!string.IsNullOrEmpty(FnValidityDate)
+                 && DateTime.TryParse(FnValidityDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var validUntil))
+        {
+            var days = (validUntil.Date - DateTime.Today).Days;
+            FnDaysResources = days < 0 ? 0 : days;
+        }
+
+        ApplyBacklog(output.Backlog);
+
+        if (output.FnWarnings != null)
+            FnWarnings = output.FnWarnings;
     }
 
     private PrintTemplate[] ReadTemplateList()
@@ -141,20 +254,43 @@ public sealed partial class ServerKkm
             ShiftNumber = document.ShiftNumber;
         if (!string.IsNullOrEmpty(document.DocId))
             DocumentId = document.DocId!;
+        if (document.DocNumberInShift > 0)
+            CheckNumberInShift = document.DocNumberInShift;
+
+        var header = document.DocumentHeader;
+        if (!string.IsNullOrEmpty(header?.Fn))
+        {
+            FnNumber = header!.Fn!;
+            IsFnPresent = true;
+        }
+        if (!string.IsNullOrEmpty(header?.RnNumber))
+        {
+            RnNumber = header!.RnNumber!;
+            IsFiscal = true;
+        }
+        if (!string.IsNullOrEmpty(header?.FnsUrl))
+            FnsUrl = header!.FnsUrl!;
 
         FiscalResult = new FiscalResult
         {
             DateTime = document.Date.ToString("o", CultureInfo.InvariantCulture),
             DeviceName = document.DeviceName,
             DocId = document.DocId,
-            FnsUrl = document.DocumentHeader?.FnsUrl,
-            FnNumber = document.DocumentHeader?.Fn,
-            RnNumber = document.DocumentHeader?.RnNumber,
+            FnsUrl = header?.FnsUrl,
+            FnNumber = header?.Fn,
+            RnNumber = header?.RnNumber,
             FiscalDateTime = document.FiscalDate.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
             FiscalSign = document.FiscalSign,
             ShiftNumber = document.ShiftNumber,
             FiscalNumber = document.DocNumber
         };
+        if (!string.IsNullOrEmpty(FiscalResult.DateTime))
+            ServerDateTime = FiscalResult.DateTime!;
+        if (!string.IsNullOrEmpty(FiscalResult.FiscalDateTime))
+        {
+            FiscalDateTime = FiscalResult.FiscalDateTime!;
+            DeviceDateTime = FiscalResult.FiscalDateTime!;
+        }
     }
 
     private CancellationTokenSource BeginCall()

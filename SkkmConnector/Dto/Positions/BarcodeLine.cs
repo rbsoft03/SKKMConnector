@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SkkmConnector;
 
 /// <summary>
@@ -19,6 +21,7 @@ public sealed class BarcodeLine : Position
     /// <summary>
     /// Значение штрихкода
     /// </summary>
+    [JsonPropertyName("Value")]
     public string Barcode { get; set; } = "";
 
     /// <summary>
