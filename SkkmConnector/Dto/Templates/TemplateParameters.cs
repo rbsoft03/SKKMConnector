@@ -1,7 +1,16 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Параметры создания или изменения шаблона печати.
+/// Параметры создания или изменения шаблона печати:
+/// <para>
+/// Name - Уникальное имя шаблона на сервере
+/// </para>
+/// <para>
+/// Type - Тип шаблона. Используйте enum <see cref="PrintTemplateType"/>
+/// </para>
+/// <para>
+/// TemplateItems - Строки шаблона (<see cref="TemplateItem"/> / <see cref="PrintLine"/>)
+/// </para>
 /// </summary>
 public sealed class TemplateParameters
 {
@@ -12,9 +21,9 @@ public sealed class TemplateParameters
     public string Name { get; set; } = "";
 
     /// <summary>
-    /// Тип шаблона: 0 — реклама; 1 — строки чека; 2 — шапка или подвал чека.
+    /// Тип шаблона. Используйте enum <see cref="PrintTemplateType"/>.
     /// </summary>
-    public int Type { get; set; }
+    public PrintTemplateType Type { get; set; }
 
     /// <summary>
     /// Строки шаблона (текст, штрихкод, картинка, разделительная линия).

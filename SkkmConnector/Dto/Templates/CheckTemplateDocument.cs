@@ -1,7 +1,8 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Документ шаблона чека
+/// Документ шаблона чека: тип чека, СНО, оплаты (<see cref="Payments"/>), позиции,
+/// покупатель, агент и прочие реквизиты — по аналогии с обычным чеком.
 /// </summary>
 public sealed class CheckTemplateDocument
 {

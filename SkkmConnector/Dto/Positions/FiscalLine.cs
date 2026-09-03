@@ -3,7 +3,8 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Фискальная строка чека
+/// Фискальная строка чека (товар / услуга). Основные поля: Name, Quantity, Price, Sum,
+/// Tax, SignMethodCalculation, SignCalculationObject; при необходимости Marking, Agent, Vendor.
 /// </summary>
 public sealed class FiscalLine : Position
 {
@@ -55,12 +56,12 @@ public sealed class FiscalLine : Position
     public int Department { get; set; }
 
     /// <summary>
-    /// Признак способа расчета
+    /// Признак способа расчёта. Используйте enum <see cref="SignMethodCalculation"/>.
     /// </summary>
     public SignMethodCalculation? SignMethodCalculation { get; set; }
 
     /// <summary>
-    /// Признак предмета расчета
+    /// Признак предмета расчёта. Используйте enum <see cref="SignCalculationObject"/>.
     /// </summary>
     public SignCalculationObject? SignCalculationObject { get; set; }
 
@@ -70,7 +71,7 @@ public sealed class FiscalLine : Position
     public string? MeasurementUnit { get; set; }
 
     /// <summary>
-    /// Мера количества предмета расчета
+    /// Мера количества предмета расчёта. Используйте enum <see cref="MeasureOfQuantity"/>.
     /// </summary>
     public MeasureOfQuantity? MeasureOfQuantity { get; set; }
 
@@ -90,24 +91,25 @@ public sealed class FiscalLine : Position
     public string? CustomsDeclaration { get; set; }
 
     /// <summary>
-    /// Признак агента по предмету расчета
+    /// Признак агента по предмету расчёта. Используйте enum <see cref="AgentType"/>.
     /// </summary>
     [JsonPropertyName("SignSubjectCalculationAgent")]
     public AgentType? AgentSign { get; set; }
 
     /// <summary>
-    /// Данные агента
+    /// Данные агента. Создайте объект <see cref="Agent"/> и заполните нужные поля.
     /// </summary>
     [JsonPropertyName("AgentData")]
     public Agent? Agent { get; set; }
 
     /// <summary>
-    /// Данные поставщика
+    /// Данные поставщика. Создайте объект <see cref="Vendor"/>
+    /// (Name, Phones, Vatin).
     /// </summary>
     public Vendor? Vendor { get; set; }
 
     /// <summary>
-    /// Данные кода товарной номенклатуры
+    /// Данные кода товарной номенклатуры. Создайте объект <see cref="Marking"/>.
     /// </summary>
     [JsonPropertyName("GoodCodeData")]
     public Marking? Marking { get; set; }
@@ -118,13 +120,15 @@ public sealed class FiscalLine : Position
     public string? MarkingCode { get; set; }
 
     /// <summary>
-    /// Описание частичного выбытия
+    /// Описание частичного выбытия. Создайте объект <see cref="FractionalQuantity"/>
+    /// (Numerator, Denominator).
     /// </summary>
     [JsonPropertyName("FractionalQuantity")]
     public FractionalQuantity? Fractional { get; set; }
 
     /// <summary>
-    /// Отраслевой реквизит
+    /// Отраслевой реквизит. Создайте объект <see cref="Industry"/>
+    /// (IdentifierFoiv, DocumentDate, DocumentNumber, AttributeValue).
     /// </summary>
     [JsonPropertyName("IndustryAttribute")]
     public Industry? Industry { get; set; }

@@ -6,10 +6,10 @@ namespace SkkmConnector
     /// Left - По левому краю
     /// </para>
     /// <para>
-    /// Right - По правому краю
+    /// Center - По центру
     /// </para>
     /// <para>
-    /// Center - По центру
+    /// Right - По правому краю
     /// </para>
     /// <para>
     /// Width - На всю ширину
@@ -18,23 +18,23 @@ namespace SkkmConnector
     public enum PrintAlignment
     {
         /// <summary>
-        /// По левому краю
+        /// По левому краю.
         /// </summary>
-        Left,
+        Left = 0,
 
         /// <summary>
-        /// По правому краю
+        /// По центру.
         /// </summary>
-        Right,
+        Center = 1,
 
         /// <summary>
-        /// По центру
+        /// По правому краю.
         /// </summary>
-        Center,
+        Right = 2,
 
         /// <summary>
-        /// На всю ширину
+        /// На всю ширину.
         /// </summary>
-        Width,
+        Width = 3,
     }
 }

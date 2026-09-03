@@ -56,7 +56,7 @@ public sealed partial class ServerKkm
     public string PictureBase64 { get; set; } = "";
 
     /// <summary>
-    /// Выравнивание изображения при печати
+    /// Выравнивание изображения при печати. Используйте enum <see cref="PictureAlignment"/>.
     /// </summary>
     public PictureAlignment PictureAlignment { get; set; } = PictureAlignment.Center;
 
@@ -70,7 +70,7 @@ public sealed partial class ServerKkm
     // Чек
 
     /// <summary>
-    /// Тип чека / задания
+    /// Тип чека / задания. Используйте enum <see cref="CheckType"/>.
     /// </summary>
     public CheckType PaymentType { get; set; } = CheckType.Sale;
 
@@ -80,17 +80,18 @@ public sealed partial class ServerKkm
     public bool IsProcessed { get; set; }
 
     /// <summary>
-    /// Система налогообложения (СНО)
+    /// Система налогообложения. Используйте enum <see cref="TaxSystem"/>.
     /// </summary>
     public TaxSystem TaxVariant { get; set; } = TaxSystem.ОСН;
 
     /// <summary>
-    /// Часовая зона
+    /// Часовая зона. Используйте enum <see cref="CheckTimeZone"/>.
     /// </summary>
     public CheckTimeZone? TimeZone { get; set; }
 
     /// <summary>
-    /// Формирование чека только в электронном виде
+    /// Чек только в электронном виде (без печати на бумаге).
+    /// true — не печатать; для обычной печати оставляйте false.
     /// </summary>
     public bool Electronically { get; set; }
 
@@ -130,64 +131,74 @@ public sealed partial class ServerKkm
     public string AdditionalAttribute { get; set; } = "";
 
     /// <summary>
-    /// Отраслевой реквизит чека
+    /// Отраслевой реквизит чека. Создайте объект <see cref="Industry"/>
+    /// (IdentifierFoiv, DocumentDate, DocumentNumber, AttributeValue).
     /// </summary>
     public Industry? IndustryAttribute { get; set; }
 
     /// <summary>
-    /// Дополнительный реквизит пользователя
+    /// Дополнительный реквизит пользователя. Создайте объект <see cref="UserAttribute"/>
+    /// (Name, Value).
     /// </summary>
     public UserAttribute? UserAttribute { get; set; }
 
     /// <summary>
-    /// Операционный реквизит чека
+    /// Операционный реквизит чека. Создайте объект <see cref="OperationalAttribute"/>
+    /// (DateTime, OperationId, OperationData).
     /// </summary>
     public OperationalAttribute? OperationalAttribute { get; set; }
 
     /// <summary>
-    /// Сведения об оплате безналичными
+    /// Детализация безналичных оплат. Добавляйте объекты <see cref="ElectronicPayment"/>
+    /// (Amount, PaymentMethod, Identifiers, AdditionalInformation).
     /// </summary>
     public List<ElectronicPayment> ElectronicPayments { get; } = new();
 
     /// <summary>
-    /// Признак агента
+    /// Признак агента. Используйте enum <see cref="AgentType"/>.
     /// </summary>
     public AgentType? AgentSign { get; set; }
 
     /// <summary>
-    /// Данные агента
+    /// Данные агента. Создайте объект <see cref="Agent"/> и заполните нужные поля.
     /// </summary>
     public Agent? Agent { get; set; }
 
     /// <summary>
-    /// Данные поставщика
+    /// Данные поставщика. Создайте объект <see cref="Vendor"/>
+    /// (Name, Phones, Vatin).
     /// </summary>
     public Vendor? Vendor { get; set; }
 
     /// <summary>
-    /// Сведения о покупателе (клиенте)
+    /// Сведения о покупателе. Создайте объект <see cref="Customer"/> и заполните нужные поля.
     /// </summary>
     public Customer? Customer { get; set; }
 
     /// <summary>
-    /// Оплаты
+    /// Суммы оплаты. Создайте объект <see cref="Payments"/>
+    /// (Cash, ElectronicPayment, AdvancePayment, Credit, CashProvision).
     /// </summary>
     public Payments Payments { get; set; } = new();
 
     /// <summary>
-    /// Товары
+    /// Позиции чека. Добавляйте наследники <see cref="Position"/>:
+    /// <see cref="FiscalLine"/>, <see cref="TextLine"/>, <see cref="BarcodeLine"/>,
+    /// <see cref="PictureLine"/>, <see cref="SeparatorLine"/>.
     /// </summary>
     public List<Position> Positions { get; } = new();
 
     // Коррекция
 
     /// <summary>
-    /// Данные коррекции
+    /// Данные коррекции. Создайте объект <see cref="CorrectionData"/>
+    /// (Type, Description, Date, Number).
     /// </summary>
     public CorrectionData? CorrectionData { get; set; }
 
     /// <summary>
-    /// Суммы НДС по ставкам для чека коррекции ФФД 1.05
+    /// Суммы НДС по ставкам для чека коррекции ФФД 1.05.
+    /// Создайте объект <see cref="Correction105Taxes"/> и заполните нужные ставки.
     /// </summary>
     public Correction105Taxes? Correction105Taxes { get; set; }
 
@@ -199,7 +210,7 @@ public sealed partial class ServerKkm
     public string MarkingCode { get; set; } = "";
 
     /// <summary>
-    /// Планируемый статус товара
+    /// Планируемый статус товара. Используйте enum <see cref="MarkingPlannedStatus"/>.
     /// </summary>
     public MarkingPlannedStatus PlannedStatus { get; set; } = MarkingPlannedStatus.Sold;
 
@@ -209,7 +220,7 @@ public sealed partial class ServerKkm
     public decimal MarkingQuantity { get; set; } = 1;
 
     /// <summary>
-    /// Мера количества предмета расчета
+    /// Мера количества предмета расчёта. Используйте enum <see cref="MeasureOfQuantity"/>.
     /// </summary>
     public MeasureOfQuantity MeasureOfQuantity { get; set; }
 
@@ -239,7 +250,7 @@ public sealed partial class ServerKkm
     public string RequestKmGuid { get; set; } = "";
 
     /// <summary>
-    /// Признак подтверждения кода маркировки
+    /// Признак подтверждения кода маркировки. Используйте enum <see cref="KmConfirmationType"/>.
     /// </summary>
     public KmConfirmationType ConfirmationType { get; set; }
 }

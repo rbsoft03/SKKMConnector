@@ -3,15 +3,16 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Штрихкод в печатной форме
+/// Штрихкод в печатной форме.
 /// </summary>
 public sealed class PrintFormBarcode
 {
     /// <summary>
-    /// Тип штрихкода: UPCA, CODE39, EAN13, EAN8, UPCE, ITF, CODABAR, CODE93, CODE128, PDF417, CODE32, QR.
+    /// Тип штрихкода.
     /// </summary>
     [JsonPropertyName("Type")]
-    public string? Type { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public BarcodeType? Type { get; set; }
 
     /// <summary>
     /// Значение штрихкода.
@@ -26,10 +27,10 @@ public sealed class PrintFormBarcode
     public string? PictureBase64 { get; set; }
 
     /// <summary>
-    /// Способ печати текста штрихкода (только для одномерных): 0 — не печатать; 1 — снизу; 2 — сверху; 3 — сверху и снизу. Если не указано — 0.
+    /// Способ печати текста штрихкода (только для одномерных).
     /// </summary>
     [JsonPropertyName("PrintText")]
-    public int PrintText { get; set; }
+    public BarcodePrintText PrintText { get; set; }
 
     /// <summary>
     /// Высота штрихкода в точках. Допустимые значения: 0..1199.

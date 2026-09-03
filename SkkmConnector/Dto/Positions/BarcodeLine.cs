@@ -1,7 +1,13 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Штрихкод
+/// Строка штрихкода в чеке:
+/// <para>
+/// Type - Тип штрихкода
+/// </para>
+/// <para>
+/// Value - Значение
+/// </para>
 /// </summary>
 public sealed class BarcodeLine : Position
 {

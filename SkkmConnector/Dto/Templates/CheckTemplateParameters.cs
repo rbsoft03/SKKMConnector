@@ -1,7 +1,13 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Параметры создания или изменения шаблона чека.
+/// Параметры создания или изменения шаблона чека:
+/// <para>
+/// Name - Уникальное имя шаблона на сервере
+/// </para>
+/// <para>
+/// Document - Документ шаблона (<see cref="CheckTemplateDocument"/>)
+/// </para>
 /// </summary>
 public sealed class CheckTemplateParameters
 {

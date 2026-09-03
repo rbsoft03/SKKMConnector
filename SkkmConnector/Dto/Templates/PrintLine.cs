@@ -1,15 +1,34 @@
+using System.Text.Json.Serialization;
+
 namespace SkkmConnector;
 
 /// <summary>
-/// Строка печатного шаблона.
+/// Строка печатного шаблона:
+/// <para>
+/// Type - Тип строки. Используйте enum <see cref="PrintLineType"/>
+/// </para>
+/// <para>
+/// Line / LineRight - Текст (левая / правая часть)
+/// </para>
+/// <para>
+/// Alignment - Выравнивание. Используйте enum <see cref="PrintAlignment"/>
+/// </para>
+/// <para>
+/// Font - Шрифт. Используйте enum <see cref="PrintFont"/>
+/// </para>
+/// <para>
+/// Width / Scale - Ширина и масштаб
+/// </para>
+/// <para>
+/// Barcode / Picture - Штрихкод или картинка (по типу строки)
+/// </para>
 /// </summary>
 public sealed class PrintLine
 {
     /// <summary>
-    /// Тип строки: 0 — фискальная; 1 — текстовая; 2 — штрихкод; 3 — изображение; 4 — разделительная линия.
-    /// Если не указано — 1 (текстовая).
+    /// Тип строки. Используйте enum <see cref="PrintLineType"/>. Если не указано — Text.
     /// </summary>
-    public int Type { get; set; } = 1;
+    public PrintLineType Type { get; set; } = PrintLineType.Text;
 
     /// <summary>
     /// Ширина. Если не указано — 0 (по содержимому).
@@ -32,16 +51,14 @@ public sealed class PrintLine
     public string? LineRight { get; set; }
 
     /// <summary>
-    /// Выравнивание: 0 — по левому краю; 1 — по центру; 2 — по правому краю; 3 — по ширине.
-    /// Если не указано — слева.
+    /// Выравнивание. Используйте enum <see cref="PrintAlignment"/>. Если не указано — Left.
     /// </summary>
-    public int Alignment { get; set; }
+    public PrintAlignment Alignment { get; set; }
 
     /// <summary>
-    /// Шрифт: 0 — обычный; 1 — жирный; 2 — мелкий; 3 — средний; 4 — крупный; 5–9 — H1–H5.
-    /// Если не указано — 0.
+    /// Шрифт. Используйте enum <see cref="PrintFont"/>. Если не указано — Normal.
     /// </summary>
-    public int Font { get; set; }
+    public PrintFont Font { get; set; }
 
     /// <summary>
     /// Перенос строк: false — строка обрезается; true — переносится. Если не указано — true.
@@ -49,17 +66,17 @@ public sealed class PrintLine
     public bool Wrap { get; set; } = true;
 
     /// <summary>
-    /// Штрихкод
+    /// Штрихкод.
     /// </summary>
     public PrintFormBarcode? Barcode { get; set; }
 
     /// <summary>
-    /// Разделительная линия
+    /// Разделительная линия.
     /// </summary>
     public SeparatorLine? SeparatorLine { get; set; }
 
     /// <summary>
-    /// Изображение
+    /// Изображение.
     /// </summary>
     public Picture? Picture { get; set; }
 }

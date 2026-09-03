@@ -11,9 +11,9 @@ public sealed class PrintTemplate
     public string Name { get; set; } = "";
 
     /// <summary>
-    /// Тип шаблона: 0 — реклама; 1 — строки чека; 2 — шапка или подвал чека.
+    /// Тип шаблона.
     /// </summary>
-    public int Type { get; set; }
+    public PrintTemplateType Type { get; set; }
 
     /// <summary>
     /// Строки шаблона (текст, штрихкод, картинка, разделитель).

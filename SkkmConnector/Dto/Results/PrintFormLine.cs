@@ -3,16 +3,15 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Строка печатной формы 
+/// Строка печатной формы.
 /// </summary>
 public sealed class PrintFormLine
 {
     /// <summary>
-    /// Тип строки: 0 — фискальная; 1 — текстовая; 2 — штрихкод; 3 — изображение; 4 — разделительная линия.
-    /// Если не указано — 1 (текстовая).
+    /// Тип строки. Если не указано — Text.
     /// </summary>
     [JsonPropertyName("Type")]
-    public int Type { get; set; }
+    public PrintLineType Type { get; set; }
 
     /// <summary>
     /// Текст строки (левая часть).
@@ -27,16 +26,16 @@ public sealed class PrintFormLine
     public string? LineRight { get; set; }
 
     /// <summary>
-    /// Выравнивание: 0 — по левому краю; 1 — по центру; 2 — по правому краю; 3 — по ширине. Если не указано — слева.
+    /// Выравнивание. Если не указано — Left.
     /// </summary>
     [JsonPropertyName("Alignment")]
-    public int Alignment { get; set; }
+    public PrintAlignment Alignment { get; set; }
 
     /// <summary>
-    /// Шрифт: 0 — обычный; 1 — жирный; 2 — мелкий; 3 — средний; 4 — крупный; 5–9 — H1–H5. Если не указано — 0.
+    /// Шрифт. Если не указано — Normal.
     /// </summary>
     [JsonPropertyName("Font")]
-    public int Font { get; set; }
+    public PrintFont Font { get; set; }
 
     /// <summary>
     /// Признак, что шрифт задан явно во входящих данных или при создании строки.

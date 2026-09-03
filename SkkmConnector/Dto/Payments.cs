@@ -1,47 +1,48 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Оплаты:
+/// Суммы оплаты по способам расчёта:
 /// <para>
-/// Cash - Сумма наличной оплаты
+/// Cash - Наличными
 /// </para>
 /// <para>
-/// ElectronicPayment - Сумма безналичными средствами
+/// ElectronicPayment - Безналичными
 /// </para>
 /// <para>
-/// AdvancePayment - Сумма предоплатой (зачетом аванса)
+/// AdvancePayment - Предоплатой (зачётом аванса)
 /// </para>
 /// <para>
-/// Credit - Сумма постоплатой (в кредит)
+/// Credit - Постоплатой (в кредит)
 /// </para>
 /// <para>
-/// CashProvision - Сумма встречным предоставлением
+/// CashProvision - Встречным предоставлением
 /// </para>
+/// Заполните одну или несколько сумм; итог должен соответствовать сумме позиций чека.
 /// </summary>
 public sealed class Payments
 {
     /// <summary>
-    /// Сумма наличной оплаты
+    /// Сумма наличной оплаты.
     /// </summary>
     public decimal Cash { get; set; }
 
     /// <summary>
-    /// Сумма безналичными средствами
+    /// Сумма безналичными средствами.
     /// </summary>
     public decimal ElectronicPayment { get; set; }
 
     /// <summary>
-    /// Сумма предоплатой (зачетом аванса)
+    /// Сумма предоплатой (зачётом аванса).
     /// </summary>
     public decimal AdvancePayment { get; set; }
 
     /// <summary>
-    /// Сумма постоплатой (в кредит)
+    /// Сумма постоплатой (в кредит).
     /// </summary>
     public decimal Credit { get; set; }
 
     /// <summary>
-    /// Сумма встречным предоставлением
+    /// Сумма встречным предоставлением.
     /// </summary>
     public decimal CashProvision { get; set; }
 }

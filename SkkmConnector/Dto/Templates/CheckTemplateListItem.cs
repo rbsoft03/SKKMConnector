@@ -13,5 +13,5 @@ public sealed class CheckTemplateListItem
     /// <summary>
     /// Тип чека шаблона
     /// </summary>
-    public int TaskType { get; set; }
+    public CheckType TaskType { get; set; }
 }

@@ -3,7 +3,9 @@ using System.Text.Json.Serialization;
 namespace SkkmConnector;
 
 /// <summary>
-/// Код товарной номенклатуры
+/// Код товарной номенклатуры / маркировка позиции.
+/// Создайте объект и заполните нужные поля (MarkingCode/Code, Gtin, StampType, Quantity и т.д.),
+/// затем присвойте в <see cref="FiscalLine.Marking"/>.
 /// </summary>
 public sealed class Marking
 {

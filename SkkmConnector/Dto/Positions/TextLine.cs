@@ -1,7 +1,16 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Текстовая строка
+/// Текстовая строка чека:
+/// <para>
+/// Text - Текст
+/// </para>
+/// <para>
+/// Font - Шрифт
+/// </para>
+/// <para>
+/// Alignment - Выравнивание
+/// </para>
 /// </summary>
 public sealed class TextLine : Position
 {

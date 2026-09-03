@@ -39,7 +39,7 @@ public sealed partial class ServerKkm
     public string DeviceName { get; set; } = "";
 
     /// <summary>
-    /// Сведения о кассире (продавце)
+    /// Сведения о кассире (продавце). Создайте объект <see cref="Cashier"/> (Name, Vatin).
     /// </summary>
     public Cashier? Cashier { get; set; }
 
@@ -95,31 +95,37 @@ public sealed partial class ServerKkm
 
     /// <summary>
     /// Настройки кассы для добавления или изменения.
+    /// Создайте объект <see cref="DeviceSettings"/> и заполните нужные поля.
     /// </summary>
     public DeviceSettings? DeviceSettings { get; set; }
 
     /// <summary>
-    /// Настройки службы печати.
+    /// Настройки службы печати. Создайте объект <see cref="ServiceSettings"/>
+    /// (WcfServicePort, WebServicePort, ServiceTimeOut, ProxyServerSettings, MaxQueueSize, RepeatPrintingOnError).
     /// </summary>
     public ServiceSettings? ServiceSettings { get; set; }
 
     /// <summary>
-    /// Пользователь сервера ККМ.
+    /// Пользователь сервера ККМ. Создайте объект <see cref="ServiceUser"/>
+    /// (Id, UserName, FullName, Vatin, Role, TokenId, Password).
     /// </summary>
     public ServiceUser? ServiceUser { get; set; }
 
     /// <summary>
-    /// Параметры шаблона печати.
+    /// Параметры шаблона печати. Создайте объект <see cref="TemplateParameters"/>
+    /// (Name, Type, TemplateItems).
     /// </summary>
     public TemplateParameters? TemplateParameters { get; set; }
 
     /// <summary>
-    /// Параметры шаблона чека.
+    /// Параметры шаблона чека. Создайте объект <see cref="CheckTemplateParameters"/>
+    /// (Name, Document).
     /// </summary>
     public CheckTemplateParameters? CheckTemplateParameters { get; set; }
 
     /// <summary>
-    /// Параметры фискализации.
+    /// Параметры фискализации / перерегистрации.
+    /// Создайте объект <see cref="FiscalizationParameters"/> и заполните нужные поля.
     /// </summary>
     public FiscalizationParameters? FiscalizationParameters { get; set; }
 }

@@ -1,7 +1,7 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Элемент шаблона печати.
+/// Элемент шаблона печати. Создайте объект и задайте <see cref="PrintLine"/>.
 /// </summary>
 public sealed class TemplateItem
 {

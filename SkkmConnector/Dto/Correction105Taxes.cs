@@ -1,77 +1,87 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Суммы НДС по чеку коррекции ФФД 1.05
+/// Суммы НДС по ставкам для чека коррекции ФФД 1.05:
+/// <para>
+/// SumTax0 / SumTax5 / SumTax7 / SumTax10 / SumTax18 / SumTax20 / SumTax22 - Суммы по ставкам
+/// </para>
+/// <para>
+/// SumTaxNone - Без НДС
+/// </para>
+/// <para>
+/// SumTax105 / SumTax107 / SumTax110 / SumTax118 / SumTax120 / SumTax122 - Расчётные ставки
+/// </para>
+/// Укажите только те ставки, которые относятся к корректируемому расчёту.
 /// </summary>
 public sealed class Correction105Taxes
 {
     /// <summary>
-    /// Сумма расчёта по ставке НДС 0%
+    /// Сумма расчёта по ставке НДС 0%.
     /// </summary>
     public decimal? SumTax0 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 5%
+    /// Сумма НДС чека по ставке 5%.
     /// </summary>
     public decimal? SumTax5 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 7%
+    /// Сумма НДС чека по ставке 7%.
     /// </summary>
     public decimal? SumTax7 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 10%
+    /// Сумма НДС чека по ставке 10%.
     /// </summary>
     public decimal? SumTax10 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 18%
+    /// Сумма НДС чека по ставке 18%.
     /// </summary>
     public decimal? SumTax18 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 20%
+    /// Сумма НДС чека по ставке 20%.
     /// </summary>
     public decimal? SumTax20 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 22%
+    /// Сумма НДС чека по ставке 22%.
     /// </summary>
     public decimal? SumTax22 { get; set; }
 
     /// <summary>
-    /// Сумма расчёта без НДС
+    /// Сумма расчёта без НДС.
     /// </summary>
     public decimal? SumTaxNone { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 5/105
+    /// Сумма НДС чека по ставке 5/105.
     /// </summary>
     public decimal? SumTax105 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по ставке 7/107
+    /// Сумма НДС чека по ставке 7/107.
     /// </summary>
     public decimal? SumTax107 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по расч. ставке 10/110
+    /// Сумма НДС чека по расч. ставке 10/110.
     /// </summary>
     public decimal? SumTax110 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по расч. ставке 18/118
+    /// Сумма НДС чека по расч. ставке 18/118.
     /// </summary>
     public decimal? SumTax118 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по расч. ставке 20/120
+    /// Сумма НДС чека по расч. ставке 20/120.
     /// </summary>
     public decimal? SumTax120 { get; set; }
 
     /// <summary>
-    /// Сумма НДС чека по расч. ставке 22/122
+    /// Сумма НДС чека по расч. ставке 22/122.
     /// </summary>
     public decimal? SumTax122 { get; set; }
 }

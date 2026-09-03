@@ -1,17 +1,24 @@
 namespace SkkmConnector;
 
 /// <summary>
-/// Дробное количество предмета расчета
+/// Дробное количество предмета расчёта:
+/// <para>
+/// Numerator - Числитель
+/// </para>
+/// <para>
+/// Denominator - Знаменатель
+/// </para>
+/// Используется вместе с мерой количества при частичной реализации маркированного товара.
 /// </summary>
 public sealed class FractionalQuantity
 {
     /// <summary>
-    /// Числитель
+    /// Числитель.
     /// </summary>
     public int Numerator { get; set; }
 
     /// <summary>
-    /// Знаменатель
+    /// Знаменатель.
     /// </summary>
     public int Denominator { get; set; }
 }
