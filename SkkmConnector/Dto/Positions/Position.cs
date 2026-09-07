@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Базовый тип позиции чека. В <c>kkm.Positions</c> добавляйте конкретные типы:

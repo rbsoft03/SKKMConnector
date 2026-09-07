@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Признак подтверждения кода маркировки при закрытии сессии регистрации:

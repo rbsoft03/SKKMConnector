@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Оплаты из ответа сервера (Payments)

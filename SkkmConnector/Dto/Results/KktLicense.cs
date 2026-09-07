@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector
+namespace RBSoftSkkm
 {
     /// <summary>
     /// Лицензия ККТ 

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector.Internal
+namespace RBSoftSkkm.Internal
 {
     /// <summary>
     /// HTTP-транспорт к серверу ККМ.
@@ -66,7 +66,7 @@ namespace SkkmConnector.Internal
             CancellationToken cancellationToken = default)
         {
             if (_disposed)
-                return FailResult(-1, "Коннектор закрыт. Создайте новый ServerKkm.");
+                return FailResult(-1, "Коннектор закрыт. Создайте новый SkkmConnector.");
             if (string.IsNullOrWhiteSpace(Host) || Port is < 1 or > 65535)
                 return FailResult(-1, "Укажите Host и Port сервера ККМ.");
 

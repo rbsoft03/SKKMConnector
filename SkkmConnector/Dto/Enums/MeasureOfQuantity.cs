@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Мера количества предмета расчёта (таблица 114 ФФД):

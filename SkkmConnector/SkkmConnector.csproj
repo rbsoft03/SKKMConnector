@@ -5,10 +5,10 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>SkkmConnector</RootNamespace>
+    <RootNamespace>RBSoftSkkm</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>SkkmConnector</PackageId>
-    <Version>1.26.4</Version>
+    <Version>1.27.0</Version>
     <Authors>rbsoft</Authors>
     <Company>rbsoft</Company>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

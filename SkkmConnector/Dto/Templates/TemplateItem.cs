@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Элемент шаблона печати. Создайте объект и задайте <see cref="PrintLine"/>.

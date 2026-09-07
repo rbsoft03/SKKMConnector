@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector.Internal
+namespace RBSoftSkkm.Internal
 {
     /// <summary>
     /// Параметры для печати чека или чека коррекции 1.2

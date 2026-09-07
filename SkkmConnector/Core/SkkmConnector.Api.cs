@@ -1,9 +1,9 @@
-using SkkmConnector.Internal;
+using RBSoftSkkm.Internal;
 using System.Text.Json;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
-public sealed partial class ServerKkm
+public sealed partial class SkkmConnector
 {
     /// <summary>
     /// Очистка входных данных перед новым запросом и результаты прошлого вызова.

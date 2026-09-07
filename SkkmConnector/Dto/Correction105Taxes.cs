@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Суммы НДС по ставкам для чека коррекции ФФД 1.05:

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector
+namespace RBSoftSkkm
 {
     /// <summary>
     /// Состояние денежного ящика: сумма наличных и число операций.

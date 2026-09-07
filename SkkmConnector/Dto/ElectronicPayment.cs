@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Сведения об одной безналичной оплате (тег 1234 и связанные):

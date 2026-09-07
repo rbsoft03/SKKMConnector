@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Фискальная строка чека (товар / услуга). Основные поля: Name, Quantity, Price, Sum,

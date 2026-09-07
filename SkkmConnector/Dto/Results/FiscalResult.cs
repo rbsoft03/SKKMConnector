@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Фискальный блок ответа сервера

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector.Internal;
+namespace RBSoftSkkm.Internal;
 
 internal sealed class DeviceSettingsRequest
 {

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Строка печатной формы.

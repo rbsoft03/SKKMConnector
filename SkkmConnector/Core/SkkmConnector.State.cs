@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
-public sealed partial class ServerKkm
+public sealed partial class SkkmConnector
 {
     /// <summary>Успех последнего вызова.</summary>
     public bool Ok { get; private set; }

@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Планируемый статус товара при проверке кода маркировки (таблица 105 ФФД):

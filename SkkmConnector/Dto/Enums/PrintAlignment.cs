@@ -1,4 +1,4 @@
-namespace SkkmConnector
+namespace RBSoftSkkm
 {
     /// <summary>
     /// Выравнивание строки или штрихкода при печати:

@@ -1,4 +1,4 @@
-namespace SkkmConnector
+namespace RBSoftSkkm
 {
     /// <summary>
     /// Система налогообложения:

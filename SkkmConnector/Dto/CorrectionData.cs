@@ -1,6 +1,6 @@
 using System;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Данные коррекции:

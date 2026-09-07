@@ -1,11 +1,11 @@
-using SkkmConnector.Internal;
+using RBSoftSkkm.Internal;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Коннектор Сервера ККМ. Один экземпляр — одна сессия
 /// </summary>
-public sealed partial class ServerKkm : IDisposable
+public sealed partial class SkkmConnector : IDisposable
 {
     private readonly KkmTransport _http = new();
     private readonly object _callLock = new();

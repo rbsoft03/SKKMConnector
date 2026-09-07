@@ -1,7 +1,7 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 // Входные свойства запроса: чек, коррекция, наличные, слип, картинки, маркировка.
-public sealed partial class ServerKkm
+public sealed partial class SkkmConnector
 {
 
     // Документы / смены

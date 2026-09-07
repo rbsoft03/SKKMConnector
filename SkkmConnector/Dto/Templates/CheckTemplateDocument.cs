@@ -1,4 +1,4 @@
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 /// <summary>
 /// Документ шаблона чека: тип чека, СНО, оплаты (<see cref="Payments"/>), позиции,

@@ -1,8 +1,8 @@
-using SkkmConnector.Internal;
+using RBSoftSkkm.Internal;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
-public sealed partial class ServerKkm
+public sealed partial class SkkmConnector
 {
     /// <summary>
     /// Касса и кассир.

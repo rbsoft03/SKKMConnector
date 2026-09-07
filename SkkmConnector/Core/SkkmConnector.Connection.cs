@@ -1,5 +1,5 @@
-namespace SkkmConnector;
-public sealed partial class ServerKkm
+namespace RBSoftSkkm;
+public sealed partial class SkkmConnector
 {
     // Подключение
 

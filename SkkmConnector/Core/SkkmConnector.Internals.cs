@@ -1,11 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
-using SkkmConnector.Internal;
+using RBSoftSkkm.Internal;
 
-namespace SkkmConnector;
+namespace RBSoftSkkm;
 
 // Транспортная инфраструктура: выбор соединения, вызов и разбор ответа.
-public sealed partial class ServerKkm
+public sealed partial class SkkmConnector
 {
     private string DeviceQuery => $"device={Uri.EscapeDataString(DeviceName)}";
     private string IdQuery => $"id={Uri.EscapeDataString(DocumentId)}";

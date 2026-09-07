@@ -1,4 +1,4 @@
-namespace SkkmConnector
+namespace RBSoftSkkm
 {
     /// <summary>
     /// Тип штрихкода для печати в документе.

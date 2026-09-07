@@ -1,6 +1,6 @@
-using SkkmConnector;
+using RBSoftSkkm;
 
-namespace SkkmConnector.Internal;
+namespace RBSoftSkkm.Internal;
 
 /// <summary>
 /// Разбор текста с разметкой в строки нефискального документа.
