@@ -44,6 +44,18 @@ internal sealed class DeviceFontSettingsRequest
     public string? TemplateSettingH5 { get; set; }
 }
 
+internal sealed class TemplateRequest
+{
+    [JsonPropertyName("Name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("Type")]
+    public int Type { get; set; }
+
+    [JsonPropertyName("TemplateItems")]
+    public TemplateItem[] TemplateItems { get; set; } = [];
+}
+
 internal sealed class CheckTemplateRequest
 {
     [JsonPropertyName("Name")]

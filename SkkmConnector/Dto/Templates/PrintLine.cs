@@ -36,9 +36,9 @@ public sealed class PrintLine
     public int Width { get; set; }
 
     /// <summary>
-    /// Масштаб. Если не указано — 100%.
+    /// Масштаб в процентах. По умолчанию — 100%.
     /// </summary>
-    public int Scale { get; set; }
+    public int Scale { get; set; } = 100;
 
     /// <summary>
     /// Текст строки (левая часть).
@@ -79,4 +79,19 @@ public sealed class PrintLine
     /// Изображение.
     /// </summary>
     public Picture? Picture { get; set; }
+
+    /// <summary>
+    /// Строка создана из печатного шаблона.
+    /// </summary>
+    public bool IsCreateFromTemplate { get; set; }
+
+    /// <summary>
+    /// Шрифт задан явно во входящих данных или при создании строки.
+    /// </summary>
+    public bool IsFontSpecified { get; set; }
+
+    /// <summary>
+    /// Строки слева или справа от штрихкода (печатная форма).
+    /// </summary>
+    public string[]? BarcodeLines { get; set; }
 }

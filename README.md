@@ -55,7 +55,8 @@ SkkmConnector/
 | `PoolName`                | `string`                  | Имя пула устройств.                                                             |
 | `QueueTaskId`             | `string`                  | Id задания в очереди печати.                                                    |
 | `PictureId`               | `string`                  | Имя картинки / шаблона.                                                         |
-| `TemplateName`            | `string`                  | Имя шаблона печати или чека.                                                    |
+| `TemplateName`            | `string`                  | Имя шаблона печати или шаблона чека.                                            |
+| `TemplateType`            | `PrintTemplateType`       | Тип печатного шаблона.                                                          |
 | `UserId`                  | `string`                  | Идентификатор пользователя сервера ККМ.                                         |
 | `FnNumber`                | `string`                  | Номер ФН (копия чека по данным ФН).                                             |
 | `ReportType`              | `int`                     | Тип отчёта для списка Z-отчётов.                                                |
@@ -63,8 +64,6 @@ SkkmConnector/
 | `DeviceSettings`          | `DeviceSettings`          | Настройки кассы для добавления / изменения.                                     |
 | `ServiceSettings`         | `ServiceSettings`         | Настройки службы печати.                                                        |
 | `ServiceUser`             | `ServiceUser`             | Пользователь сервера ККМ.                                                       |
-| `TemplateParameters`      | `TemplateParameters`      | Параметры шаблона печати.                                                       |
-| `CheckTemplateParameters` | `CheckTemplateParameters` | Параметры шаблона чека.                                                         |
 | `FiscalizationParameters` | `FiscalizationParameters` | Параметры фискализации / перерегистрации.                                       |
 | `ShiftsFrom` / `ShiftsTo` | `DateTime`                | Период для списков отчётов, чеков и операций (по умолчанию последние 7 дней).   |
 
@@ -182,8 +181,8 @@ SkkmConnector/
 | `Users`                        | `ServiceUser[]`           | Список пользователей.                                      |
 | `ServiceSettingsResult`        | `ServiceSettings`         | Настройки службы после чтения.                             |
 | `Pools`                        | `string[]`                | Список пулов.                                              |
-| `PrintTemplate`                | `PrintTemplate`           | Шаблон печати.                                             |
-| `Templates`                    | `PrintTemplate[]`         | Список шаблонов печати.                                    |
+| `PrintTemplate`                | `PrintTemplate`           | Шаблон печати: имя, тип и строки.                          |
+| `Templates`                    | `string[]`                | Список имён шаблонов печати.                               |
 | `CheckTemplate`                | `CheckTemplate`           | Шаблон чека.                                               |
 | `CheckTemplates`               | `CheckTemplateListItem[]` | Список шаблонов чека.                                      |
 | `FiscalizationDocument`        | `FiscalizationDocument`   | Документ фискализации.                                     |

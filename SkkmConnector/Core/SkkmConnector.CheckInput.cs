@@ -142,6 +142,18 @@ public sealed partial class SkkmConnector
     /// </summary>
     public string TextForPrint { get; set; } = "";
 
+    // Шаблоны
+
+    /// <summary>
+    /// Имя шаблона печати или шаблона чека.
+    /// </summary>
+    public string TemplateName { get; set; } = "";
+
+    /// <summary>
+    /// Тип печатного шаблона
+    /// </summary>
+    public PrintTemplateType TemplateType { get; set; }
+
     // Чек
 
     /// <summary>
@@ -155,9 +167,14 @@ public sealed partial class SkkmConnector
     public bool IsProcessed { get; set; }
 
     /// <summary>
-    /// Система налогообложения. Используйте enum <see cref="TaxSystem"/>.
+    /// Система налогообложения. 
     /// </summary>
-    public TaxSystem TaxVariant { get; set; } = TaxSystem.ОСН;
+    public TaxSystem TaxVariant { get; set; } = TaxSystem.Osn;
+
+    /// <summary>
+    /// Задать систему налогообложения на смену.
+    /// </summary>
+    public void SetTaxType(TaxSystem taxVariant) => TaxVariant = taxVariant;
 
     /// <summary>
     /// Часовая зона. Используйте enum <see cref="CheckTimeZone"/>.
@@ -205,23 +222,56 @@ public sealed partial class SkkmConnector
     /// </summary>
     public string AdditionalAttribute { get; set; } = "";
 
-    /// <summary>
-    /// Отраслевой реквизит чека. Создайте объект <see cref="Industry"/>
-    /// (IdentifierFoiv, DocumentDate, DocumentNumber, AttributeValue).
-    /// </summary>
-    public Industry? IndustryAttribute { get; set; }
+    // Отраслевой реквизит чека (тег 1261)
 
     /// <summary>
-    /// Дополнительный реквизит пользователя. Создайте объект <see cref="UserAttribute"/>
-    /// (Name, Value).
+    /// Идентификатор ФОИВ отраслевого реквизита чека.
     /// </summary>
-    public UserAttribute? UserAttribute { get; set; }
+    public string IndustryIdentifierFoiv { get; set; } = "";
 
     /// <summary>
-    /// Операционный реквизит чека. Создайте объект <see cref="OperationalAttribute"/>
-    /// (DateTime, OperationId, OperationData).
+    /// Дата документа-основания отраслевого реквизита чека.
     /// </summary>
-    public OperationalAttribute? OperationalAttribute { get; set; }
+    public string IndustryDocumentDate { get; set; } = "";
+
+    /// <summary>
+    /// Номер документа-основания отраслевого реквизита чека.
+    /// </summary>
+    public string IndustryDocumentNumber { get; set; } = "";
+
+    /// <summary>
+    /// Значение отраслевого реквизита чека.
+    /// </summary>
+    public string IndustryAttributeValue { get; set; } = "";
+
+    // Дополнительный реквизит пользователя (тег 1084)
+
+    /// <summary>
+    /// Наименование дополнительного реквизита пользователя.
+    /// </summary>
+    public string UserAttributeName { get; set; } = "";
+
+    /// <summary>
+    /// Значение дополнительного реквизита пользователя.
+    /// </summary>
+    public string UserAttributeValue { get; set; } = "";
+
+    // Операционный реквизит чека (тег 1270)
+
+    /// <summary>
+    /// Дата и время операции операционного реквизита чека.
+    /// </summary>
+    public string OperationalAttributeDateTime { get; set; } = "";
+
+    /// <summary>
+    /// Идентификатор операции операционного реквизита чека.
+    /// </summary>
+    public int? OperationalAttributeOperationId { get; set; }
+
+    /// <summary>
+    /// Данные операции операционного реквизита чека.
+    /// </summary>
+    public string OperationalAttributeData { get; set; } = "";
 
     /// <summary>
     /// Детализация безналичных оплат. Добавляйте объекты <see cref="ElectronicPayment"/>
@@ -235,20 +285,100 @@ public sealed partial class SkkmConnector
     public AgentType? AgentSign { get; set; }
 
     /// <summary>
-    /// Данные агента. Создайте объект <see cref="Agent"/> и заполните нужные поля.
+    /// Операция платёжного агента.
     /// </summary>
-    public Agent? Agent { get; set; }
+    public string AgentPayingAgentOperation { get; set; } = "";
 
     /// <summary>
-    /// Данные поставщика. Создайте объект <see cref="Vendor"/>
-    /// (Name, Phones, Vatin).
+    /// Телефон(ы) платёжного агента.
     /// </summary>
-    public Vendor? Vendor { get; set; }
+    public string[]? AgentPayingAgentPhone { get; set; }
 
     /// <summary>
-    /// Сведения о покупателе. Создайте объект <see cref="Customer"/> и заполните нужные поля.
+    /// Телефон(ы) оператора по приёму платежей.
     /// </summary>
-    public Customer? Customer { get; set; }
+    public string[]? AgentReceivePaymentsOperatorPhone { get; set; }
+
+    /// <summary>
+    /// Телефон(ы) оператора перевода.
+    /// </summary>
+    public string[]? AgentMoneyTransferOperatorPhone { get; set; }
+
+    /// <summary>
+    /// Наименование оператора перевода.
+    /// </summary>
+    public string AgentMoneyTransferOperatorName { get; set; } = "";
+
+    /// <summary>
+    /// Адрес оператора перевода.
+    /// </summary>
+    public string AgentMoneyTransferOperatorAddress { get; set; } = "";
+
+    /// <summary>
+    /// ИНН оператора перевода.
+    /// </summary>
+    public string AgentMoneyTransferOperatorVatin { get; set; } = "";
+
+    /// <summary>
+    /// Наименование поставщика.
+    /// </summary>
+    public string VendorName { get; set; } = "";
+
+    /// <summary>
+    /// Телефон(ы) поставщика.
+    /// </summary>
+    public string[]? VendorPhones { get; set; }
+
+    /// <summary>
+    /// ИНН поставщика.
+    /// </summary>
+    public string VendorVatin { get; set; } = "";
+
+    /// <summary>
+    /// Наименование организации или фамилия, имя, отчество (при наличии)
+    /// </summary>
+    public string? CustomerInfo { get; set; }
+
+    /// <summary>
+    /// ИНН покупателя
+    /// </summary>
+    public string? CustomerVatin { get; set; }
+
+    /// <summary>
+    /// Электронная почта покупателя
+    /// </summary>
+    public string? CustomerEmail { get; set; }
+    
+    /// <summary>
+    /// Номер телефона покупателя
+    /// </summary>
+    public string? CustomerPhone { get; set; }
+
+    /// <summary>
+    /// Дата рождения покупателя (клиента) в формате "DD.MM.YYYY"
+    /// </summary>
+    public string? CustomerDateOfBirth {  get; set; }
+
+    /// <summary>
+    /// Числовой код страны, гражданином которой является покупатель (клиент).
+    /// Код страны указывается в соответствии с Общероссийским классификатором стран мира ОКСМ.
+    /// </summary>
+    public string? CustomerCitizenship { get; set;  }
+
+    /// <summary>
+    /// Числовой код вида документа, удостоверяющего личность (ФФД, Таблица 116)
+    /// </summary>
+    public string? CustomerDocumentTypeCode { get; set; }
+
+    /// <summary>
+    /// Данные документа, удостоверяющего личность
+    /// </summary>
+    public string? CustomerDocumentData { get; set; }
+
+    /// <summary>
+    /// Адрес покупателя (клиента)
+    /// </summary>
+    public string? CustomerAddress { get; set; }
 
     /// <summary>
     /// Суммы оплаты. Создайте объект <see cref="Payments"/>
@@ -257,19 +387,145 @@ public sealed partial class SkkmConnector
     public Payments Payments { get; set; } = new();
 
     /// <summary>
-    /// Позиции чека. Добавляйте наследники <see cref="Position"/>:
-    /// <see cref="FiscalLine"/>, <see cref="TextLine"/>, <see cref="BarcodeLine"/>,
-    /// <see cref="PictureLine"/>, <see cref="SeparatorLine"/>.
+    /// Позиции чека
     /// </summary>
-    public List<Position> Positions { get; } = new();
+    private readonly List<Position> _positions = new();
+
+    /// <summary>
+    /// Добавление фискальной строки (товара, услуги) в чек.
+    /// Обязательные поля задаются параметрами: наименование, количество, сумма со скидкой и ставка НДС;
+    /// признак предмета расчёта и признак способа расчёта (если не заданы, применяются
+    /// значения ККТ по умолчанию). Цена за единицу вычисляется как сумма, делённая на количество.
+    /// </summary>
+    public FiscalLine AddPosition(
+        string name,
+        decimal quantity,
+        decimal sum,
+        TaxRate tax,
+        SignCalculationObject? signCalculationObject = null,
+        SignMethodCalculation? signMethodCalculation = null)
+    {
+        var line = new FiscalLine
+        {
+            Name = name,
+            Quantity = quantity,
+            Sum = sum,
+            Price = quantity != 0 ? sum / quantity : sum,
+            Tax = tax,
+            SignCalculationObject = signCalculationObject,
+            SignMethodCalculation = signMethodCalculation
+        };
+        _positions.Add(line);
+        return line;
+    }
+
+    /// <summary>
+    /// Добавление текстовой строки в чек или печатный шаблон.
+    /// </summary>
+    public TextLine AddText(
+        string text,
+        PrintFont font = PrintFont.Normal,
+        PrintAlignment alignment = PrintAlignment.Left)
+    {
+        var line = new TextLine { Text = text, Font = font, Alignment = alignment };
+        _positions.Add(line);
+        return line;
+    }
+
+    /// <summary>
+    /// Добавление текстовой строки из двух частей: левая прижимается к левому краю,
+    /// правая — к правому (например, «Итого» и сумма). Перенос при этом отключается.
+    /// </summary>
+    public TextLine AddText(string left, string right, PrintFont font = PrintFont.Normal)
+    {
+        var line = new TextLine
+        {
+            Text = left,
+            LineRight = right,
+            Font = font,
+            Wrap = false
+        };
+        _positions.Add(line);
+        return line;
+    }
+
+    /// <summary>
+    /// Добавление строки штрихкода в чек или печатный шаблон.
+    /// Высота и ширина штриха задаются в точках; печать текста действует только для одномерных.
+    /// </summary>
+    public BarcodeLine AddBarcode(
+        BarcodeType type,
+        string value,
+        PrintAlignment alignment = PrintAlignment.Center,
+        int height = 0,
+        int barWidth = 0,
+        BarcodePrintText printText = BarcodePrintText.None)
+    {
+        var line = new BarcodeLine
+        {
+            Type = type,
+            Barcode = value,
+            Alignment = alignment,
+            Height = height,
+            BarWidth = barWidth,
+            PrintText = printText
+        };
+        _positions.Add(line);
+        return line;
+    }
+
+    /// <summary>
+    /// Добавление разделительной линии в чек или печатный шаблон. Стиль по умолчанию — сплошная линия.
+    /// </summary>
+    public SeparatorLine AddSeparatorLine(LineStyle lineStyle = LineStyle.Solid)
+    {
+        var line = new SeparatorLine { LineStyle = lineStyle };
+        _positions.Add(line);
+        return line;
+    }
+
+    /// <summary>
+    /// Добавление изображения в чек или печатный шаблон. Картинка передаётся в Base64;
+    /// ширина и высота — в точках (0 — размер изображения).
+    /// </summary>
+    public PictureLine AddPicture(
+        string valueBase64,
+        PictureAlignment alignment = PictureAlignment.Center,
+        int width = 0,
+        int height = 0)
+    {
+        var line = new PictureLine
+        {
+            Value = valueBase64,
+            Alignment = alignment,
+            Width = width > 0 ? width : null,
+            Height = height > 0 ? height : null
+        };
+        _positions.Add(line);
+        return line;
+    }
 
     // Коррекция
 
     /// <summary>
-    /// Данные коррекции. Создайте объект <see cref="CorrectionData"/>
-    /// (Type, Description, Date, Number).
+    /// Тип коррекции
     /// </summary>
-    public CorrectionData? CorrectionData { get; set; }
+    public CorrectionTypes CorrectionType { get; set; } = CorrectionTypes.Самостоятельно;
+
+    /// <summary>
+    /// Описание коррекции.
+    /// </summary>
+    public string CorrectionDescription { get; set; } = "";
+
+    /// <summary>
+    /// Дата совершения корректируемого расчёта.
+    /// </summary>
+    public DateTime CorrectionDate { get; set; } = DateTime.Today;
+
+    /// <summary>
+    /// Номер предписания налогового органа (для типа коррекции «По предписанию»).
+    /// </summary>
+    public string CorrectionNumber { get; set; } = "";
 
     /// <summary>
     /// Суммы НДС по ставкам для чека коррекции ФФД 1.05.

@@ -32,10 +32,22 @@ public sealed class CheckDocument
     public decimal Change { get; set; }
 
     /// <summary>
-    /// Сумма с учётом скидки.
+    /// Сумма с учётом скидки. Для внесения и выемки — фактическая сумма операции.
     /// </summary>
     [JsonPropertyName("Sum")]
     public decimal Sum { get; set; }
+
+    /// <summary>
+    /// Остаток наличных в денежном ящике (внесение, выемка).
+    /// </summary>
+    [JsonPropertyName("CashSum")]
+    public decimal? CashSum { get; set; }
+
+    /// <summary>
+    /// Номер денежного ящика (открытие ящика).
+    /// </summary>
+    [JsonPropertyName("DrawerNumber")]
+    public int DrawerNumber { get; set; }
 
     /// <summary>
     /// Признак применения ККТ при осуществлении расчёта в безналичном порядке в сети «Интернет».
@@ -72,6 +84,12 @@ public sealed class CheckDocument
     /// </summary>
     [JsonPropertyName("DocumentHeader")]
     public DocumentHeader? DocumentHeader { get; set; }
+
+    /// <summary>
+    /// Строки напечатанного документа (нефискальный документ).
+    /// </summary>
+    [JsonPropertyName("Lines")]
+    public PrintFormLine[]? Lines { get; set; }
 
     /// <summary>
     /// Регистрация чека без печати на ленте.

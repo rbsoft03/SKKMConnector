@@ -1,98 +1,111 @@
+using System.Text.Json.Serialization;
+
 namespace RBSoftSkkm;
 
 /// <summary>
-/// Документ шаблона чека: тип чека, СНО, оплаты (<see cref="Payments"/>), позиции,
-/// покупатель, агент и прочие реквизиты — по аналогии с обычным чеком.
+/// Документ шаблона чека в том виде, в каком его хранит сервер
 /// </summary>
 public sealed class CheckTemplateDocument
 {
     /// <summary>
-    /// Тип чека 
+    /// Тип чека
     /// </summary>
+    [JsonPropertyName("TaskType")]
     public CheckType PaymentType { get; set; }
 
     /// <summary>
     /// Система налогообложения
     /// </summary>
+    [JsonPropertyName("TaxType")]
     public TaxSystem TaxVariant { get; set; }
 
     /// <summary>
     /// Часовая зона.
     /// </summary>
-    public CheckTimeZone? TimeZone { get; set; }
+    [JsonPropertyName("TimeZone")]
+    public CheckTimeZone TimeZone { get; set; }
 
     /// <summary>
-    /// Признак расчёта в сети Интернет.
+    /// Признак применения ККТ при расчёте в безналичном порядке в сети «Интернет».
     /// </summary>
+    [JsonPropertyName("OperationOnline")]
     public bool OperationOnline { get; set; }
 
     /// <summary>
-    /// Адрес электронной почты отправителя чека.
+    /// Замена системы налогообложения настройками ККТ.
     /// </summary>
-    public string SenderEmail { get; set; } = "";
+    [JsonPropertyName("IsReplaceTax")]
+    public bool IsReplaceTax { get; set; }
 
     /// <summary>
-    /// Адрес проведения расчётов.
+    /// Формирование чека только в электронном виде (без печати на бумаге).
     /// </summary>
-    public string SaleAddress { get; set; } = "";
-
-    /// <summary>
-    /// Место проведения расчётов.
-    /// </summary>
-    public string SaleLocation { get; set; } = "";
-
-    /// <summary>
-    /// Формирование чека только в электронном виде.
-    /// </summary>
+    [JsonPropertyName("Electronically")]
     public bool Electronically { get; set; }
 
     /// <summary>
-    /// Покупатель.
+    /// Фискальный документ.
     /// </summary>
-    public Customer? Customer { get; set; }
+    [JsonPropertyName("IsFiscal")]
+    public bool IsFiscal { get; set; }
 
     /// <summary>
-    /// Позиции чека
+    /// Подтверждён в ФН.
     /// </summary>
-    public List<Position> Positions { get; set; } = [];
+    [JsonPropertyName("TrustedInFn")]
+    public bool TrustedInFn { get; set; }
 
     /// <summary>
-    /// Строки шаблона
+    /// Сумма с учётом скидки.
     /// </summary>
-    public List<CheckItem> CheckItems { get; set; } = [];
+    [JsonPropertyName("Sum")]
+    public decimal Sum { get; set; }
 
     /// <summary>
-    /// Оплаты чека.
+    /// Сдача.
     /// </summary>
-    public Payments? Payments { get; set; }
+    [JsonPropertyName("Change")]
+    public decimal Change { get; set; }
 
     /// <summary>
-    /// Электронные платежи.
+    /// Номер документа «Уведомление о реализации МТ», в который включаются данные чека.
     /// </summary>
-    public List<ElectronicPayment> ElectronicPayments { get; set; } = [];
+    [JsonPropertyName("MtNumber")]
+    public int MtNumber { get; set; }
 
     /// <summary>
-    /// Данные коррекции
+    /// Ошибка при печати бумажной формы чека.
     /// </summary>
+    [JsonPropertyName("PrintError")]
+    public bool PrintError { get; set; }
+
+    /// <summary>
+    /// Позиции шаблона.
+    /// </summary>
+    [JsonPropertyName("CheckItems")]
+    public CheckItem[] CheckItems { get; set; } = [];
+
+    /// <summary>
+    /// Способы оплаты.
+    /// </summary>
+    [JsonPropertyName("Payments")]
+    public CheckPayments? Payments { get; set; }
+
+    /// <summary>
+    /// Сведения о покупателе.
+    /// </summary>
+    [JsonPropertyName("CustomerDetail")]
+    public CheckCustomer? CustomerDetail { get; set; }
+
+    /// <summary>
+    /// Дополнительный реквизит чека (тег 1192).
+    /// </summary>
+    [JsonPropertyName("AdditionalAttribute")]
+    public string? AdditionalAttribute { get; set; }
+
+    /// <summary>
+    /// Данные коррекции, если шаблон — чек коррекции.
+    /// </summary>
+    [JsonPropertyName("CorrectionData")]
     public CorrectionData? CorrectionData { get; set; }
-
-    /// <summary>
-    /// Отраслевой реквизит чека
-    /// </summary>
-    public Industry? IndustryAttribute { get; set; }
-
-    /// <summary>
-    /// Дополнительный реквизит пользователя
-    /// </summary>
-    public UserAttribute? UserAttribute { get; set; }
-
-    /// <summary>
-    /// Операционный реквизит чека
-    /// </summary>
-    public OperationalAttribute? OperationalAttribute { get; set; }
-
-    /// <summary>
-    /// Дополнительный реквизит чека (БСО), тег 1192
-    /// </summary>
-    public string AdditionalAttribute { get; set; } = "";
 }

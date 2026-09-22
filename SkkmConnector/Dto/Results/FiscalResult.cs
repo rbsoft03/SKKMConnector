@@ -96,4 +96,10 @@ public class FiscalResult
     /// </summary>
     [JsonPropertyName("OutputParameters")]
     public FiscalOutputParameters? OutputParameters { get; set; }
+
+    /// <summary>
+    /// Сменные итоги (X- и Z-отчёт).
+    /// </summary>
+    [JsonPropertyName("shiftTotal")]
+    public ResShiftTotal? ShiftTotal { get; set; }
 }

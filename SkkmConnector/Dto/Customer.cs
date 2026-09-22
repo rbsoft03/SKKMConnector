@@ -37,6 +37,7 @@ public sealed class Customer
     /// Наименование организации или фамилия, имя, отчество (при наличии).
     /// </summary>
     public string? Info { get; set; }
+    // CustomerInfo
 
     /// <summary>
     /// ИНН покупателя.

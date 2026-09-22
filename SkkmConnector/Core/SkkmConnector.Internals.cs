@@ -48,6 +48,8 @@ public sealed partial class SkkmConnector
         }
 
         ExtractFiscalResult(LastResult);
+        if (LooksLikeDocument(LastResult))
+            ApplyDocument(ReadResult<CheckDocument>());
     }
 
     private static JsonElement ToJsonElement<T>(T? value)
@@ -62,6 +64,7 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Разбор Result
     /// заполняет <see cref="FiscalResult"/> и плоские свойства.
+    /// Имена полей читаются без учёта регистра.
     /// </summary>
     private void ExtractFiscalResult(JsonElement result)
     {
@@ -75,11 +78,11 @@ public sealed partial class SkkmConnector
         }
         catch (JsonException)
         {
-            return;
+            fiscal = null;
         }
 
-        if (fiscal == null)
-            return;
+        fiscal ??= new FiscalResult();
+        OverlayFiscalFromJson(result, fiscal);
 
         var hasFiscal =
             !string.IsNullOrEmpty(fiscal.FiscalSign)
@@ -92,6 +95,7 @@ public sealed partial class SkkmConnector
             || fiscal.CashDrawer != null
             || fiscal.Backlog != null
             || fiscal.OutputParameters != null
+            || fiscal.ShiftTotal != null
             || fiscal.ShiftState.HasValue
             || !string.IsNullOrEmpty(fiscal.DateTime)
             || !string.IsNullOrEmpty(fiscal.FiscalDateTime)
@@ -143,6 +147,104 @@ public sealed partial class SkkmConnector
 
         ApplyBacklog(fiscal.Backlog);
         ApplyOutputParameters(fiscal.OutputParameters);
+    }
+
+    /// <summary>
+    /// Дочитывает фискальные поля из JSON, если десериализация
+    /// их пропустила из‑за другого регистра или имени (DocNumber, Fn, DocumentHeader).
+    /// </summary>
+    private static void OverlayFiscalFromJson(JsonElement result, FiscalResult fiscal)
+    {
+        fiscal.FiscalSign ??= ReadString(result, "fiscalSign", "FiscalSign");
+        fiscal.DocId ??= ReadString(result, "docId", "DocId");
+        fiscal.FnNumber ??= ReadString(result, "fnNumber", "FnNumber", "Fn");
+        fiscal.RnNumber ??= ReadString(result, "rnNumber", "RnNumber");
+        fiscal.FnsUrl ??= ReadString(result, "fnsUrl", "FnsUrl");
+        fiscal.DateTime ??= ReadString(result, "datetime", "DateTime", "Date");
+        fiscal.FiscalDateTime ??= ReadString(result, "fiscalDatetime", "FiscalDateTime", "FiscalDate");
+        fiscal.DeviceName ??= ReadString(result, "deviceName", "DeviceName");
+
+        if (fiscal.FiscalNumber <= 0)
+            fiscal.FiscalNumber = ReadInt(result, "fiscalNumber", "FiscalNumber", "DocNumber");
+        if (fiscal.ShiftNumber <= 0)
+            fiscal.ShiftNumber = ReadInt(result, "shiftNumber", "ShiftNumber");
+        fiscal.CashSum ??= ReadDecimal(result, "CashSum", "cashSum");
+
+        if (TryGetProperty(result, out var header, "DocumentHeader", "documentHeader"))
+        {
+            fiscal.FiscalSign ??= ReadString(header, "FiscalSign", "fiscalSign");
+            fiscal.FnNumber ??= ReadString(header, "Fn", "FnNumber", "fnNumber");
+            fiscal.RnNumber ??= ReadString(header, "RnNumber", "rnNumber");
+            fiscal.FnsUrl ??= ReadString(header, "FnsUrl", "fnsUrl");
+            if (fiscal.FiscalNumber <= 0)
+                fiscal.FiscalNumber = ReadInt(header, "DocNumber", "FiscalNumber");
+            if (fiscal.ShiftNumber <= 0)
+                fiscal.ShiftNumber = ReadInt(header, "ShiftNumber");
+        }
+    }
+
+    private static bool LooksLikeDocument(JsonElement result)
+        => result.ValueKind == JsonValueKind.Object
+           && HasProperty(result, "DocumentHeader", "CheckItems", "TaskType", "FiscalDate", "DrawerNumber");
+
+    private static bool HasProperty(JsonElement obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (TryGetProperty(obj, out _, name))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool TryGetProperty(JsonElement obj, out JsonElement value, params string[] names)
+    {
+        foreach (var property in obj.EnumerateObject())
+        {
+            foreach (var name in names)
+            {
+                if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = property.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static string? ReadString(JsonElement obj, params string[] names)
+    {
+        if (!TryGetProperty(obj, out var value, names))
+            return null;
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString(),
+            JsonValueKind.Null or JsonValueKind.Undefined => null,
+            _ => value.ToString()
+        };
+    }
+
+    private static int ReadInt(JsonElement obj, params string[] names)
+    {
+        if (!TryGetProperty(obj, out var value, names))
+            return 0;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number))
+            return number;
+        return int.TryParse(value.ToString(), out var parsed) ? parsed : 0;
+    }
+
+    private static decimal? ReadDecimal(JsonElement obj, params string[] names)
+    {
+        if (!TryGetProperty(obj, out var value, names))
+            return null;
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetDecimal(out var number))
+            return number;
+        return decimal.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : null;
     }
 
     private void ApplyBacklog(Backlog? backlog)
@@ -198,24 +300,32 @@ public sealed partial class SkkmConnector
             FnWarnings = output.FnWarnings;
     }
 
-    private PrintTemplate[] ReadTemplateList()
+    /// <summary>
+    /// Шаблон печати из ответа
+    /// </summary>
+    private void ApplyTemplate(PrintTemplate? template)
     {
-        if (LastResult.ValueKind != JsonValueKind.Array)
-            return [];
+        PrintTemplate = template;
+        if (template == null)
+            return;
 
-        var list = new List<PrintTemplate>();
-        foreach (var item in LastResult.EnumerateArray())
-        {
-            if (item.ValueKind == JsonValueKind.String)
-                list.Add(new PrintTemplate { Name = item.GetString() ?? "" });
-            else
-            {
-                var parsed = item.Deserialize<PrintTemplate>(ResultJsonOptions);
-                if (parsed != null)
-                    list.Add(parsed);
-            }
-        }
-        return list.ToArray();
+        if (!string.IsNullOrEmpty(template.Name))
+            TemplateName = template.Name;
+        TemplateType = template.Type;
+        RestorePositionsFromPrintLines(template.Lines);
+    }
+
+    /// <summary>
+    /// Шаблон чека из ответа
+    /// </summary>
+    private void ApplyCheckTemplate(CheckTemplate? template)
+    {
+        CheckTemplate = template;
+        CheckTemplateDocument = template?.Document;
+        if (!string.IsNullOrEmpty(template?.Name))
+            TemplateName = template!.Name;
+        if (template?.Document != null)
+            RestoreCheckFromTemplate(template.Document);
     }
 
     private T? ReadResult<T>()
@@ -246,21 +356,29 @@ public sealed partial class SkkmConnector
         if (document == null)
             return;
 
-        if (!string.IsNullOrEmpty(document.FiscalSign))
-            FiscalSign = document.FiscalSign!;
-        if (document.DocNumber > 0)
-            CheckNumber = document.DocNumber;
-        if (document.ShiftNumber > 0)
-            ShiftNumber = document.ShiftNumber;
+        var header = document.DocumentHeader;
+        var fiscalSign = FirstNonEmpty(document.FiscalSign, header?.FiscalSign);
+        var fn = FirstNonEmpty(document.Fn, header?.Fn);
+        var shiftNumber = document.ShiftNumber > 0 ? document.ShiftNumber : header?.ShiftNumber ?? 0;
+        var docNumber = document.DocNumber > 0 ? document.DocNumber : header?.DocNumber ?? 0;
+
+        if (!string.IsNullOrEmpty(fiscalSign))
+            FiscalSign = fiscalSign!;
+        if (docNumber > 0)
+            CheckNumber = docNumber;
+        if (shiftNumber > 0)
+            ShiftNumber = shiftNumber;
         if (!string.IsNullOrEmpty(document.DocId))
             DocumentId = document.DocId!;
         if (document.DocNumberInShift > 0)
             CheckNumberInShift = document.DocNumberInShift;
-
-        var header = document.DocumentHeader;
-        if (!string.IsNullOrEmpty(header?.Fn))
+        if (document.CashSum.HasValue)
+            CashBalance = document.CashSum.Value;
+        if (document.Lines is { Length: > 0 })
+            PrintForm = document.Lines;
+        if (!string.IsNullOrEmpty(fn))
         {
-            FnNumber = header!.Fn!;
+            FnNumber = fn!;
             IsFnPresent = true;
         }
         if (!string.IsNullOrEmpty(header?.RnNumber))
@@ -273,16 +391,26 @@ public sealed partial class SkkmConnector
 
         FiscalResult = new FiscalResult
         {
-            DateTime = document.Date.ToString("o", CultureInfo.InvariantCulture),
-            DeviceName = document.DeviceName,
-            DocId = document.DocId,
-            FnsUrl = header?.FnsUrl,
-            FnNumber = header?.Fn,
-            RnNumber = header?.RnNumber,
-            FiscalDateTime = document.FiscalDate.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
-            FiscalSign = document.FiscalSign,
-            ShiftNumber = document.ShiftNumber,
-            FiscalNumber = document.DocNumber
+            DateTime = document.Date != default
+                ? document.Date.ToString("o", CultureInfo.InvariantCulture)
+                : FiscalResult?.DateTime,
+            DeviceName = document.DeviceName ?? FiscalResult?.DeviceName,
+            DocId = document.DocId ?? FiscalResult?.DocId,
+            FnsUrl = header?.FnsUrl ?? FiscalResult?.FnsUrl,
+            FnNumber = fn ?? FiscalResult?.FnNumber,
+            RnNumber = header?.RnNumber ?? FiscalResult?.RnNumber,
+            FiscalDateTime = document.FiscalDate != default
+                ? document.FiscalDate.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)
+                : FiscalResult?.FiscalDateTime,
+            FiscalSign = fiscalSign ?? FiscalResult?.FiscalSign,
+            ShiftNumber = shiftNumber > 0 ? shiftNumber : FiscalResult?.ShiftNumber ?? 0,
+            FiscalNumber = docNumber > 0 ? docNumber : FiscalResult?.FiscalNumber ?? 0,
+            CashSum = document.CashSum ?? FiscalResult?.CashSum,
+            CashDrawer = FiscalResult?.CashDrawer,
+            Backlog = FiscalResult?.Backlog,
+            OutputParameters = FiscalResult?.OutputParameters,
+            ShiftTotal = FiscalResult?.ShiftTotal,
+            ShiftState = FiscalResult?.ShiftState
         };
         if (!string.IsNullOrEmpty(FiscalResult.DateTime))
             ServerDateTime = FiscalResult.DateTime!;
@@ -291,6 +419,16 @@ public sealed partial class SkkmConnector
             FiscalDateTime = FiscalResult.FiscalDateTime!;
             DeviceDateTime = FiscalResult.FiscalDateTime!;
         }
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrEmpty(value))
+                return value;
+        }
+        return null;
     }
 
     private CancellationTokenSource BeginCall()

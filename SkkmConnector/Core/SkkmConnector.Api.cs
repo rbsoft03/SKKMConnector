@@ -6,13 +6,11 @@ namespace RBSoftSkkm;
 public sealed partial class SkkmConnector
 {
     /// <summary>
-    /// Очистка входных данных перед новым запросом и результаты прошлого вызова.
+    /// Очищает всё состояние: входные данные запроса и ответ прошлого вызова.
     /// </summary>
-    public void NewRequest()
+    public void Clear()
     {
         PaymentType = CheckType.Sale;
-        IsProcessed = false;
-        TaxVariant = TaxSystem.ОСН;
         Electronically = false;
         OperationOnline = false;
         TimeZone = null;
@@ -22,42 +20,82 @@ public sealed partial class SkkmConnector
         SaleAddress = "";
         SenderEmail = "";
         AdditionalAttribute = "";
-        IndustryAttribute = null;
-        UserAttribute = null;
-        OperationalAttribute = null;
+        _positions.Clear();
         ElectronicPayments.Clear();
-        AgentSign = null;
-        Agent = null;
-        Vendor = null;
-        Customer = null;
         Payments = new Payments();
-        Positions.Clear();
-        CorrectionData = null;
+        
+        CustomerInfo = "";
+        CustomerVatin = "";
+        CustomerEmail = "";
+        CustomerPhone = "";
+        CustomerDateOfBirth = "";
+        CustomerDocumentTypeCode = "";
+        CustomerDocumentData = "";
+        CustomerCitizenship = "";
+        CustomerAddress = "";
+
+        AgentSign = null;
+        AgentPayingAgentOperation = "";
+        AgentPayingAgentPhone = null;
+        AgentReceivePaymentsOperatorPhone = null;
+        AgentMoneyTransferOperatorPhone = null;
+        AgentMoneyTransferOperatorName = "";
+        AgentMoneyTransferOperatorAddress = "";
+        AgentMoneyTransferOperatorVatin = "";
+        VendorName = "";
+        VendorPhones = null;
+        VendorVatin = "";
+
+        IndustryIdentifierFoiv = "";
+        IndustryDocumentDate = "";
+        IndustryDocumentNumber = "";
+        IndustryAttributeValue = "";
+        UserAttributeName = "";
+        UserAttributeValue = "";
+        OperationalAttributeDateTime = "";
+        OperationalAttributeOperationId = null;
+        OperationalAttributeData = "";
+
+        CorrectionType = CorrectionTypes.Самостоятельно;
+        CorrectionDescription = "";
+        CorrectionDate = default;
+        CorrectionNumber = "";
         Correction105Taxes = null;
+
         CashAmount = 0;
         TextForPrint = "";
         PictureName = "";
         PictureBase64 = "";
         PictureAlignment = PictureAlignment.Center;
+
         MarkingCode = "";
         PlannedStatus = MarkingPlannedStatus.Sold;
         MarkingQuantity = 1;
-        MeasureOfQuantity = MeasureOfQuantity.Piece;
+        MeasureOfQuantity = default;
         FractionalQuantityNumerator = 0;
         FractionalQuantityDenominator = 0;
         NotSendToServer = false;
         WaitForResult = false;
         RequestKmGuid = "";
-        ConfirmationType = KmConfirmationType.Included;
-        ShiftsFrom = DateTime.Today.AddDays(-7);
-        ShiftsTo = DateTime.Today;
-        DocumentId = "";
+        ConfirmationType = default;
+        MarkingCodes.Clear();
+
+        TemplateName = "";
+        TemplateType = default;
+
+        Ok = false;
+        ErrorCode = 0;
+        ErrorDescription = "";
+        LastResult = default;
+        FiscalResult = null;
         FiscalSign = "";
+        FnNumber = "";
         ShiftNumber = 0;
         CheckNumber = 0;
         CheckNumberInShift = 0;
         RnNumber = "";
         FnsUrl = "";
+        DocumentId = "";
         ServerDateTime = "";
         FiscalDateTime = "";
         DeviceDateTime = "";
@@ -70,20 +108,133 @@ public sealed partial class SkkmConnector
         IsFnPresent = false;
         IsFiscal = false;
         FnWarnings = null;
-        ShiftTotals = null;
+        CashBalance = 0;
         NonZeroSum = 0;
-        Ok = false;
-        ErrorCode = 0;
-        ErrorDescription = "";
-        LastResult = default;
-        FiscalResult = null;
-        MarkingCheck = null;
-        MarkingProcessing = null;
-        Check = null;
-        Checks = [];
-        TaskStatus = null;
-        PrintForm = [];
-        Shifts = [];
+    }
+
+    /// <summary>
+    /// Полная очистка, но дополнительно сбрасывает данные кассира и СНО
+    /// </summary>
+    public void ClearAll()
+    {
+        Clear();
+        CashierName = "";
+        CashierVatin = "";
+        TaxVariant = TaxSystem.Osn;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий чек и задаёт только тип операции для чека. Кассир и СНО берутся из ранее заданных <see cref="SetCashierName"/> / <see cref="SetTaxType"/> (они держатся всю смену)
+    /// </summary>
+    public void NewCheck(CheckType paymentType)
+        {
+            Clear();
+            PaymentType = paymentType;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий чек и задаёт обязательные поля для чека - имя кассира,
+    /// тип операции и систему налогообложения.
+    /// </summary>
+    public void NewCheck(string cashierName, CheckType paymentType, TaxSystem taxVariant)
+    {
+        Clear();
+        CashierName = cashierName;
+        PaymentType = paymentType;
+        TaxVariant = taxVariant;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий чек и задаёт тип операции и данные коррекции
+    /// </summary>
+    public void NewCheckCorrection(
+        CheckType paymentType,
+        CorrectionTypes correctionType,
+        string correctionDescription,
+        DateTime correctionDate,
+        string correctionNumber = "")
+    {
+        Clear();
+        PaymentType = paymentType;
+        CorrectionType = correctionType;
+        CorrectionDescription = correctionDescription;
+        CorrectionDate = correctionDate;
+        CorrectionNumber = correctionNumber;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий чек и помимо обязательных полей чека задаёт данные коррекции
+    /// </summary>
+    public void NewCheckCorrection(
+        string cashierName,
+        CheckType paymentType,
+        TaxSystem taxVariant,
+        CorrectionTypes correctionType,
+        string correctionDescription,
+        DateTime correctionDate,
+        string correctionNumber = "")
+    {
+        Clear();
+        CashierName = cashierName;
+        PaymentType = paymentType;
+        TaxVariant = taxVariant;
+        CorrectionType = correctionType;
+        CorrectionDescription = correctionDescription;
+        CorrectionDate = correctionDate;
+        CorrectionNumber = correctionNumber;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий шаблон печати и задаёт имя и тип нового.
+    /// Дальше добавляйте строки теми же методами, что и в чек:
+    /// <see cref="AddText(string, PrintFont, PrintAlignment)"/>, <see cref="AddBarcode"/>,
+    /// <see cref="AddSeparatorLine"/>, <see cref="AddPicture"/>.
+    /// Имя — уникальный идентификатор шаблона на сервере, пробелы в нём не допускаются.
+    /// </summary>
+    public void NewTemplate(string name, PrintTemplateType type = PrintTemplateType.Advertisement)
+    {
+        Clear();
+        TemplateName = name;
+        TemplateType = type;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий шаблон чека и задаёт его имя.
+    /// Дальше собирайте чек как обычно: <see cref="AddPosition"/>, <see cref="Payments"/>,
+    /// затем <see cref="AddCheckTemplate()"/>.
+    /// </summary>
+    public void NewCheckTemplate(string name)
+    {
+        Clear();
+        TemplateName = name;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий шаблон чека, задаёт имя и тип операции.
+    /// Кассир и СНО берутся из <see cref="SetCashierName"/> / <see cref="SetTaxType"/>.
+    /// </summary>
+    public void NewCheckTemplate(string name, CheckType paymentType)
+    {
+        NewCheck(paymentType);
+        TemplateName = name;
+    }
+
+    /// <summary>
+    /// Очищает предыдущий шаблон чека и задаёт имя, кассира, тип операции и СНО.
+    /// </summary>
+    public void NewCheckTemplate(string name, string cashierName, CheckType paymentType, TaxSystem taxVariant)
+    {
+        NewCheck(cashierName, paymentType, taxVariant);
+        TemplateName = name;
+    }
+
+    /// <summary>
+    /// Период отбора для списков отчётов, чеков и операций: даты «с» и «по».
+    /// </summary>
+    public void FromTo(DateTime from, DateTime to)
+    {
+        ShiftsFrom = from;
+        ShiftsTo = to;
     }
 
     /// <summary>
@@ -182,32 +333,36 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает X-отчёт по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportX()
+    public async Task GetReportX(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("shift/x");
     }
 
     /// <summary>
     /// Возвращает Z-отчёт по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportZ()
+    public async Task GetReportZ(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("shift/z");
     }
 
     /// <summary>
     /// Возвращает результат открытия смены по идентификатору документа (docId)
     /// </summary>
-    public async Task GetOpenShift()
+    public async Task GetOpenShift(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("shift/open");
     }
 
     /// <summary>
     /// Возвращает отчёт о состоянии расчётов по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportSettlement()
+    public async Task GetReportSettlement(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("report/settlement");
     }
 
@@ -280,6 +435,8 @@ public sealed partial class SkkmConnector
     /// </summary>
     public async Task PrintCheck()
     {
+        if (!ValidateCheck())
+            return;
         await Post("check", CheckBody());
     }
 
@@ -288,6 +445,8 @@ public sealed partial class SkkmConnector
     /// </summary>
     public async Task PrintCheckAsync()
     {
+        if (!ValidateCheck())
+            return;
         await Post("check/async", CheckBody());
     }
 
@@ -326,8 +485,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает чек коррекции ФФД 1.2 по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCorrection120()
+    public async Task GetCorrection120(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("correction120");
     }
 
@@ -342,8 +502,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает чек коррекции ФФД 1.0.5 по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCorrection105()
+    public async Task GetCorrection105(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("correction105");
     }
 
@@ -356,19 +517,11 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Получение списка чеков за смену
-    /// </summary>
-    public async Task GetChecksByShift()
-    {
-        await Get($"check/list?{DeviceQuery}&shift={ShiftNumber}");
-        Checks = ReadResult<CheckDocument[]>() ?? [];
-    }
-
-    /// <summary>
     /// Возвращает статус выполнения задания по идентификатору документа (docId)
     /// </summary>
-    public async Task GetTaskStatus()
+    public async Task GetTaskStatus(string documentId)
     {
+        DocumentId = documentId;
         await Get($"task/status?{IdQuery}");
         TaskStatus = ReadResult<ResponseTaskStatus>();
         if (TaskStatus == null)
@@ -386,16 +539,18 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает результат операции по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCheck()
+    public async Task GetCheck(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("check");
     }
 
     /// <summary>
     /// Получение фискального признака (ФП) по номеру фискального документа (ФД)
     /// </summary>
-    public async Task GetFiscalSign()
+    public async Task GetFiscalSign(int docNumber)
     {
+        CheckNumber = docNumber;
         await Get($"check/fiscalSign?docNumber={CheckNumber}&{DeviceQuery}");
         if (Ok && LastResult.ValueKind == JsonValueKind.String)
             FiscalSign = LastResult.GetString() ?? "";
@@ -415,26 +570,30 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает печатную форму документа по его идентификатору (docId)
     /// </summary>
-    public async Task GetPrintForm()
+    public async Task GetPrintForm(string documentId)
     {
+        DocumentId = documentId;
         await Get($"task/form?{IdQuery}");
         PrintForm = ReadResult<PrintFormLine[]>() ?? [];
     }
 
     /// <summary>
-    /// Регистрация операции внесения наличных в денежный ящик
+    /// Регистрация операции внесения наличных в денежный ящик. 
     /// </summary>
     public async Task CashIn()
     {
         await Post("cashin", CashBody());
+        ApplyDocument(ReadResult<CheckDocument>());
     }
 
     /// <summary>
-    /// Регистрация операции выемки наличных из денежного ящика
+    /// Регистрация операции выемки наличных из денежного ящика. Сервер возвращает документ
+    /// операции: он попадает в <see cref="Check"/>, а остаток в ящике — в <see cref="CashBalance"/>.
     /// </summary>
     public async Task CashOut()
     {
         await Post("cashout", CashBody());
+        ApplyDocument(ReadResult<CheckDocument>());
     }
 
     /// <summary>
@@ -443,6 +602,7 @@ public sealed partial class SkkmConnector
     public async Task OpenCashdrawer()
     {
         await Post("cash/open", CheckBase());
+        ApplyDocument(ReadResult<CheckDocument>());
     }
 
     /// <summary>
@@ -457,8 +617,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает результат операции внесения наличных по идентификатору операции (docId)
     /// </summary>
-    public async Task GetCashIn()
+    public async Task GetCashIn(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("cashin");
     }
 
@@ -473,8 +634,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Возвращает результат операции выемки наличных по идентификатору операции (docId)
     /// </summary>
-    public async Task GetCashOut()
+    public async Task GetCashOut(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("cashout");
     }
 
@@ -569,11 +731,12 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Печать нефискального документа
+    /// Печать нефискального документа.
     /// </summary>
     public async Task PrintSlip()
     {
         await Post("slip", SlipBody());
+        ApplyDocument(ReadResult<CheckDocument>());
     }
 
     /// <summary>
@@ -786,14 +949,12 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Список чеков за период или смену.
+    /// Список чеков за период и смену. Номер смены передаётся параметром, период (даты «с»/«по»)
     /// </summary>
-    public async Task GetCheckList()
+    public async Task GetCheckList(int shiftNumber)
     {
-        var query = $"{DeviceQuery}&{DateQuery(ShiftsFrom, ShiftsTo)}";
-        if (ShiftNumber > 0)
-            query += $"&shift={ShiftNumber}";
-        await Get($"check/list?{query}");
+        ShiftNumber = shiftNumber;
+        await Get($"check/list?{DeviceQuery}&{DateQuery(ShiftsFrom, ShiftsTo)}&shift={ShiftNumber}");
         Checks = ReadResult<CheckDocument[]>() ?? [];
     }
 
@@ -814,8 +975,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Получение слипа по идентификатору документа.
     /// </summary>
-    public async Task GetSlip()
+    public async Task GetSlip(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("slip");
     }
 
@@ -830,8 +992,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Получение картинки по имени.
     /// </summary>
-    public async Task GetPicture()
+    public async Task GetPicture(string pictureId)
     {
+        PictureId = pictureId;
         await Get($"picture?{DeviceQuery}&id={Uri.EscapeDataString(PictureId)}");
         if (Ok && LastResult.ValueKind == JsonValueKind.String)
             PictureBase64Result = LastResult.GetString() ?? "";
@@ -850,41 +1013,59 @@ public sealed partial class SkkmConnector
     /// </summary>
     public async Task AddTemplate()
     {
-        await Post("template", TemplateParameters);
+        if (!ValidateTemplate())
+            return;
+        await Post("template", TemplateBody());
+        if (Ok && LastResult.ValueKind == JsonValueKind.String)
+            TemplateName = LastResult.GetString() ?? TemplateName;
     }
 
     /// <summary>
-    /// Изменение шаблона печати.
+    /// Изменение шаблона печати по его имени. Строки задаются так же, как при создании
     /// </summary>
     public async Task UpdateTemplate()
     {
-        await Put("template", TemplateParameters);
+        if (!ValidateTemplate())
+            return;
+        await Put("template", TemplateBody());
     }
 
     /// <summary>
-    /// Удаление шаблона печати.
+    /// Удаление шаблона печати. Имя берётся из <see cref="TemplateName"/>.
     /// </summary>
     public async Task DeleteTemplate()
     {
+        if (!ValidateTemplateName(TemplateName, "шаблона печати"))
+            return;
         await Delete($"template?id={Uri.EscapeDataString(TemplateName)}");
     }
 
     /// <summary>
-    /// Список шаблонов печати.
+    /// Удаление шаблона печати по имени.
+    /// </summary>
+    public async Task DeleteTemplate(string name)
+    {
+        TemplateName = name;
+        await DeleteTemplate();
+    }
+
+    /// <summary>
+    /// Список имён шаблонов печати.
     /// </summary>
     public async Task GetTemplateList()
     {
         await Get("template/list");
-        Templates = ReadTemplateList();
+        Templates = ReadResult<string[]>() ?? [];
     }
 
     /// <summary>
-    /// Получение шаблона печати по имени.
+    /// Получение шаблона печати по имени. 
     /// </summary>
-    public async Task GetTemplate()
+    public async Task GetTemplate(string name)
     {
+        TemplateName = name;
         await Get($"template?name={Uri.EscapeDataString(TemplateName)}");
-        PrintTemplate = ReadResult<PrintTemplate>();
+        ApplyTemplate(ReadResult<PrintTemplate>());
     }
 
     /// <summary>
@@ -892,27 +1073,60 @@ public sealed partial class SkkmConnector
     /// </summary>
     public async Task AddCheckTemplate()
     {
-        await Post("checkTemplate", CheckTemplateBody());
+        if (!ValidateCheckTemplate(TemplateName))
+            return;
+        await Post("checkTemplate", CheckTemplateBody(TemplateName));
     }
 
     /// <summary>
-    /// Изменение шаблона чека.
+    /// Создание шаблона чека под указанным именем.
+    /// </summary>
+    public async Task AddCheckTemplate(string name)
+    {
+        TemplateName = name;
+        await AddCheckTemplate();
+    }
+
+    /// <summary>
+    /// Изменение шаблона чека. Обязательно указываем имя шаблона
     /// </summary>
     public async Task UpdateCheckTemplate()
     {
-        await Put("checkTemplate", CheckTemplateBody());
+        if (!ValidateCheckTemplate(TemplateName))
+            return;
+        await Put("checkTemplate", CheckTemplateBody(TemplateName));
     }
 
     /// <summary>
-    /// Удаление шаблона чека.
+    /// Изменение шаблона чека под указанным именем.
+    /// </summary>
+    public async Task UpdateCheckTemplate(string name)
+    {
+        TemplateName = name;
+        await UpdateCheckTemplate();
+    }
+
+    /// <summary>
+    /// Удаление шаблона чека. Имя берётся из <see cref="TemplateName"/>.
     /// </summary>
     public async Task DeleteCheckTemplate()
     {
+        if (!ValidateTemplateName(TemplateName, "шаблона чека"))
+            return;
         await Delete($"checkTemplate?id={Uri.EscapeDataString(TemplateName)}");
     }
 
     /// <summary>
-    /// Список шаблонов чека.
+    /// Удаление шаблона чека по имени.
+    /// </summary>
+    public async Task DeleteCheckTemplate(string name)
+    {
+        TemplateName = name;
+        await DeleteCheckTemplate();
+    }
+
+    /// <summary>
+    /// Список шаблонов чека: имя шаблона и тип чека.
     /// </summary>
     public async Task GetCheckTemplateList()
     {
@@ -921,12 +1135,13 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Получение шаблона чека по имени.
+    /// Получение шаблона чека по имени
     /// </summary>
-    public async Task GetCheckTemplate()
+    public async Task GetCheckTemplate(string name)
     {
+        TemplateName = name;
         await Get($"checkTemplate?id={Uri.EscapeDataString(TemplateName)}");
-        CheckTemplate = ReadResult<CheckTemplate>();
+        ApplyCheckTemplate(ReadResult<CheckTemplate>());
     }
 
     /// <summary>
@@ -941,8 +1156,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Состояние задания в очереди.
     /// </summary>
-    public async Task GetQueueTask()
+    public async Task GetQueueTask(string taskId)
     {
+        QueueTaskId = taskId;
         await Get($"queue/task?taskId={Uri.EscapeDataString(QueueTaskId)}");
         QueueTask = ReadResult<QueueTaskState>();
     }
@@ -950,8 +1166,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// История обработки задания в очереди.
     /// </summary>
-    public async Task GetQueueTaskHistory()
+    public async Task GetQueueTaskHistory(string taskId)
     {
+        QueueTaskId = taskId;
         await Get($"queue/task/history?taskId={Uri.EscapeDataString(QueueTaskId)}");
         QueueTask = ReadResult<QueueTaskState>();
         if (QueueTask != null)
@@ -1031,8 +1248,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Результат фискализации по идентификатору документа.
     /// </summary>
-    public async Task GetFiscalization()
+    public async Task GetFiscalization(string documentId)
     {
+        DocumentId = documentId;
         await GetDocumentById("fiscalization");
         FiscalizationDocument = ReadResult<FiscalizationDocument>();
     }
@@ -1059,8 +1277,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Операция по идентификатору документа.
     /// </summary>
-    public async Task GetOperation()
+    public async Task GetOperation(string documentId)
     {
+        DocumentId = documentId;
         await Get($"operation?{DocIdQuery}");
         ApplyOperation(ReadResult<DeviceTaskInfo>());
     }
@@ -1068,8 +1287,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// История операции по идентификатору документа.
     /// </summary>
-    public async Task GetOperationHistory()
+    public async Task GetOperationHistory(string documentId)
     {
+        DocumentId = documentId;
         await Get($"operation/history?{DocIdQuery}");
         OperationHistory = ReadResult<OperationHistoryItem[]>() ?? [];
     }
@@ -1077,8 +1297,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// TLV-данные операции.
     /// </summary>
-    public async Task GetOperationTlv()
+    public async Task GetOperationTlv(string documentId)
     {
+        DocumentId = documentId;
         await Get($"operation/tlv?{DocIdQuery}");
         if (Ok && LastResult.ValueKind == JsonValueKind.String)
             OperationTlv = LastResult.GetString() ?? "";
@@ -1087,8 +1308,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Данные маркировки операции.
     /// </summary>
-    public async Task GetOperationKm()
+    public async Task GetOperationKm(string documentId)
     {
+        DocumentId = documentId;
         await Get($"operation/km?{DocIdQuery}");
         OperationKm = ReadResult<OperationKmRow[]>() ?? [];
     }
@@ -1096,8 +1318,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Связанные операции.
     /// </summary>
-    public async Task GetOperationRelated()
+    public async Task GetOperationRelated(string documentId)
     {
+        DocumentId = documentId;
         await Get($"operation/related?{DocIdQuery}");
         RelatedOperations = ReadResult<DeviceTaskInfo[]>() ?? [];
     }
@@ -1117,7 +1340,6 @@ public sealed partial class SkkmConnector
         var body = new FiscalizationRequest
         {
             DeviceName = DeviceName,
-            Cashier = Cashier,
             RnNumber = source?.RnNumber,
             TaxationSystems = source?.TaxationSystems,
             Vatin = source?.Vatin,

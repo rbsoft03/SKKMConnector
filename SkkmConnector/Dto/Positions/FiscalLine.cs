@@ -41,9 +41,9 @@ public sealed class FiscalLine : Position
     public decimal DiscountSum { get; set; }
 
     /// <summary>
-    /// Ставка НДС. Обязательна: сервер отклоняет позицию без ставки
+    /// Ставка НДС предмета расчёта.
     /// </summary>
-    public string Tax { get; set; } = "";
+    public TaxRate Tax { get; set; }
 
     /// <summary>
     /// Сумма НДС за предмет расчета
@@ -109,15 +109,10 @@ public sealed class FiscalLine : Position
     public Vendor? Vendor { get; set; }
 
     /// <summary>
-    /// Данные кода товарной номенклатуры. Создайте объект <see cref="Marking"/>.
+    /// Код маркировки товара. Строка в любом формате (base64, CIS, GTIN) 
     /// </summary>
-    [JsonPropertyName("GoodCodeData")]
-    public Marking? Marking { get; set; }
-
-    /// <summary>
-    /// Код контрольной марки
-    /// </summary>
-    public string? MarkingCode { get; set; }
+    [JsonPropertyName("MarkingCode")]
+    public string? Marking { get; set; }
 
     /// <summary>
     /// Описание частичного выбытия. Создайте объект <see cref="FractionalQuantity"/>

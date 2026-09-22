@@ -39,9 +39,24 @@ public sealed partial class SkkmConnector
     public string DeviceName { get; set; } = "";
 
     /// <summary>
-    /// Сведения о кассире (продавце). Создайте объект <see cref="Cashier"/> (Name, Vatin).
+    /// Имя (ФИО) кассира.
     /// </summary>
-    public Cashier? Cashier { get; set; }
+    public string CashierName { get; set; } = "";
+
+    /// <summary>
+    /// ИНН кассира (при наличии)
+    /// </summary>
+    public string CashierVatin { get; set; } = "";
+
+    /// <summary>
+    /// Задать имя (ФИО) кассира на смену.
+    /// </summary>
+    public void SetCashierName(string cashierName) => CashierName = cashierName;
+
+    /// <summary>
+    /// Задать ИНН кассира на смену.
+    /// </summary>
+    public void SetCashierVatin(string cashierVatin) => CashierVatin = cashierVatin;
 
     /// <summary>
     /// Логин для Basic Auth при получении токена. По умолчанию Admin.
@@ -72,11 +87,6 @@ public sealed partial class SkkmConnector
     /// Имя картинки или шаблона.
     /// </summary>
     public string PictureId { get; set; } = "";
-
-    /// <summary>
-    /// Имя шаблона печати или чека.
-    /// </summary>
-    public string TemplateName { get; set; } = "";
 
     /// <summary>
     /// Идентификатор пользователя сервера ККМ.
@@ -110,18 +120,6 @@ public sealed partial class SkkmConnector
     /// (Id, UserName, FullName, Vatin, Role, TokenId, Password).
     /// </summary>
     public ServiceUser? ServiceUser { get; set; }
-
-    /// <summary>
-    /// Параметры шаблона печати. Создайте объект <see cref="TemplateParameters"/>
-    /// (Name, Type, TemplateItems).
-    /// </summary>
-    public TemplateParameters? TemplateParameters { get; set; }
-
-    /// <summary>
-    /// Параметры шаблона чека. Создайте объект <see cref="CheckTemplateParameters"/>
-    /// (Name, Document).
-    /// </summary>
-    public CheckTemplateParameters? CheckTemplateParameters { get; set; }
 
     /// <summary>
     /// Параметры фискализации / перерегистрации.

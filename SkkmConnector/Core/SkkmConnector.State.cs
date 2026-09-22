@@ -109,16 +109,32 @@ public sealed partial class SkkmConnector
     /// <summary>Список операций.</summary>
     public OperationListItem[] Operations { get; private set; } = [];
 
-    /// <summary>Шаблон печати.</summary>
+    /// <summary>Шаблон печати: имя, тип и строки.</summary>
     public PrintTemplate? PrintTemplate { get; private set; }
 
-    /// <summary>Список шаблонов печати.</summary>
-    public PrintTemplate[] Templates { get; private set; } = [];
+    /// <summary>
+    /// Строки текущего печатного шаблона: либо полученные методом <see cref="GetTemplate"/>,
+    /// либо собранные через <see cref="AddText(string, PrintFont, PrintAlignment)"/> /
+    /// <see cref="AddBarcode"/> / <see cref="AddSeparatorLine"/> / <see cref="AddPicture"/>.
+    /// </summary>
+    public IReadOnlyList<PrintLine> TemplateLines
+        => PrintTemplate?.Lines.Count > 0
+            ? PrintTemplate.Lines
+            : BuildPrintLines(_positions);
+
+    /// <summary>Имена шаблонов печати на сервере.</summary>
+    public string[] Templates { get; private set; } = [];
+
+    /// <summary>Имена шаблонов печати на сервере. То же, что <see cref="Templates"/>.</summary>
+    public string[] TemplateNames => Templates;
 
     /// <summary>Шаблон чека.</summary>
     public CheckTemplate? CheckTemplate { get; private set; }
 
-    /// <summary>Список шаблонов чека.</summary>
+    /// <summary>Документ шаблона чека: позиции, оплаты, тип чека, СНО.</summary>
+    public CheckTemplateDocument? CheckTemplateDocument { get; private set; }
+
+    /// <summary>Список шаблонов чека: имя и тип чека.</summary>
     public CheckTemplateListItem[] CheckTemplates { get; private set; } = [];
 
     /// <summary>Документ фискализации.</summary>

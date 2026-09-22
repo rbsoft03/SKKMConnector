@@ -16,7 +16,8 @@ public sealed class BarcodeLine : Position
     /// <summary>
     /// Тип штрихкода
     /// </summary>
-    public string Type { get; set; } = "";
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public BarcodeType Type { get; set; } = BarcodeType.QR;
 
     /// <summary>
     /// Значение штрихкода
@@ -31,6 +32,29 @@ public sealed class BarcodeLine : Position
 
     /// <summary>
     /// Выравнивание штрихкода
+    /// Если не задано — по центру.
     /// </summary>
-    public string? Alignment { get; set; }
+    [JsonIgnore]
+    public PrintAlignment? Alignment { get; set; }
+
+    /// <summary>
+    /// Выравнивание в том виде, в каком его ждёт сервер: left, right, center.
+    /// </summary>
+    [JsonPropertyName("Alignment")]
+    public string? AlignmentValue => Alignment?.ToString().ToLowerInvariant();
+
+    /// <summary>
+    /// Высота штрихкода в точках. 0 — по умолчанию устройства.
+    /// </summary>
+    public int Height { get; set; }
+
+    /// <summary>
+    /// Ширина штриха в точках. 0 — по умолчанию устройства.
+    /// </summary>
+    public int BarWidth { get; set; }
+
+    /// <summary>
+    /// Печать текста под/над штрихкодом (только для одномерных).
+    /// </summary>
+    public BarcodePrintText PrintText { get; set; }
 }

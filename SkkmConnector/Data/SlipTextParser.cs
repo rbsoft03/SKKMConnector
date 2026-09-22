@@ -21,10 +21,10 @@ internal static class SlipTextParser
     /// <summary>
     /// Одна строка: префиксы в тексте превращаются в SeparatorLine / Barcode / TextString.
     /// </summary>
-    public static DocPosition ParseLine(string line, string? font = null, string? alignment = null)
+    public static DocPosition ParseLine(string line, PrintFont? font = null, PrintAlignment? alignment = null)
     {
-        PrintAlignment? parsedAlignment = ParseEnum<PrintAlignment>(alignment);
-        PrintFont? parsedFont = ParseEnum<PrintFont>(font);
+        PrintAlignment? parsedAlignment = alignment;
+        PrintFont? parsedFont = font;
         BarcodeType? barcodeType = null;
         LineStyle? lineStyle = null;
         var hasLineTag = false;
@@ -87,9 +87,9 @@ internal static class SlipTextParser
             {
                 Barcode = new BarcodeLine
                 {
-                    Type = barcodeType.ToString() ?? "",
+                    Type = barcodeType.Value,
                     Barcode = line.Trim(),
-                    Alignment = parsedAlignment?.ToString().ToLowerInvariant()
+                    Alignment = parsedAlignment
                 }
             };
         }
@@ -118,13 +118,5 @@ internal static class SlipTextParser
             return false;
 
         return true;
-    }
-
-    private static TEnum? ParseEnum<TEnum>(string? value) where TEnum : struct, Enum
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        return Enum.TryParse<TEnum>(value, ignoreCase: true, out var parsed) ? parsed : null;
     }
 }

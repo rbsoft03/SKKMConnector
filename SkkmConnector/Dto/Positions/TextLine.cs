@@ -15,17 +15,28 @@ namespace RBSoftSkkm;
 public sealed class TextLine : Position
 {
     /// <summary>
-    /// Текст строки
+    /// Текст строки (левая часть).
     /// </summary>
     public string Text { get; set; } = "";
 
     /// <summary>
-    /// Шрифт
+    /// Текст строки (правая часть)
     /// </summary>
-    public string? Font { get; set; }
+    public string? LineRight { get; set; }
 
     /// <summary>
-    /// Выравнивание
+    /// Шрифт. Если не задан — Normal.
     /// </summary>
-    public string? Alignment { get; set; }
+    public PrintFont? Font { get; set; }
+
+    /// <summary>
+    /// Выравнивание. Если не задано — Left.
+    /// </summary>
+    public PrintAlignment? Alignment { get; set; }
+
+    /// <summary>
+    /// Перенос строк. false — строка обрезается; true — переносится.
+    /// Для двухколоночной строки (LineRight) по умолчанию выключается.
+    /// </summary>
+    public bool Wrap { get; set; } = true;
 }

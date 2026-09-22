@@ -90,4 +90,16 @@ public sealed class CheckItem
     /// </summary>
     [JsonPropertyName("AdditionalAttribute")]
     public string? AdditionalAttribute { get; set; }
+
+    /// <summary>
+    /// Код маркировки.
+    /// </summary>
+    [JsonPropertyName("MarkingCode")]
+    public string? MarkingCode { get; set; }
+
+    /// <summary>
+    /// Код товара.
+    /// </summary>
+    [JsonPropertyName("ProductCode")]
+    public string? ProductCode { get; set; }
 }
