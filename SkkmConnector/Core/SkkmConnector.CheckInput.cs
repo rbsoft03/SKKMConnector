@@ -4,102 +4,6 @@ namespace RBSoftSkkm;
 public sealed partial class SkkmConnector
 {
 
-    // Документы / смены
-
-    /// <summary>
-    /// Идентификатор документа (docId)
-    /// </summary>
-    public string DocumentId { get; set; } = "";
-
-    /// <summary>
-    /// Фискальный признак документа
-    /// </summary>
-    public string FiscalSign { get; set; } = "";
-
-    /// <summary>
-    /// Номер смены
-    /// </summary>
-    public int ShiftNumber { get; set; }
-
-    /// <summary>
-    /// Номер фискального документа (ФД)
-    /// </summary>
-    public int CheckNumber { get; set; }
-
-    /// <summary>
-    /// Номер чека за смену
-    /// </summary>
-    public int CheckNumberInShift { get; set; }
-
-    /// <summary>
-    /// Регистрационный номер ККТ (РНМ)
-    /// </summary>
-    public string RnNumber { get; set; } = "";
-
-    /// <summary>
-    /// Адрес сайта ФНС
-    /// </summary>
-    public string FnsUrl { get; set; } = "";
-
-    /// <summary>
-    /// Время на сервере ККМ
-    /// </summary>
-    public string ServerDateTime { get; set; } = "";
-
-    /// <summary>
-    /// Дата и время документа по часам ФН 
-    /// </summary>
-    public string FiscalDateTime { get; set; } = "";
-
-    /// <summary>
-    /// Время ККТ
-    /// </summary>
-    public string DeviceDateTime { get; set; } = "";
-
-    /// <summary>
-    /// Состояние смены. Используйте enum <see cref="ShiftState"/>.
-    /// </summary>
-    public ShiftState? CurrentShiftState { get; set; }
-
-    /// <summary>
-    /// Количество непереданных в ОФД документов.
-    /// </summary>
-    public long BacklogDocumentsCount { get; set; }
-
-    /// <summary>
-    /// Номер первого непереданного документа.
-    /// </summary>
-    public long BacklogFirstDocumentNumber { get; set; }
-
-    /// <summary>
-    /// Дата и время первого непереданного документа.
-    /// </summary>
-    public DateTime? BacklogFirstDocumentDateTime { get; set; }
-
-    /// <summary>
-    /// Срок действия ФН.
-    /// </summary>
-    public string FnValidityDate { get; set; } = "";
-
-    /// <summary>
-    /// Остаток ресурса ФН в днях.
-    /// </summary>
-    public int FnDaysResources { get; set; }
-
-    /// <summary>
-    /// ФН присутствует
-    /// </summary>
-    public bool IsFnPresent { get; set; }
-
-    /// <summary>
-    /// Фискальный режим
-    /// </summary>
-    public bool IsFiscal { get; set; }
-
-    /// <summary>
-    /// Предупреждения ФН из ответа.
-    /// </summary>
-    public Warnings? FnWarnings { get; set; }
 
     /// <summary>
     /// Начало периода отбора отчётов, чеков и операций
@@ -121,17 +25,7 @@ public sealed partial class SkkmConnector
     // Картинки
 
     /// <summary>
-    /// Название изображения
-    /// </summary>
-    public string PictureName { get; set; } = "";
-
-    /// <summary>
-    /// Изображение, закодированное в Base64.
-    /// </summary>
-    public string PictureBase64 { get; set; } = "";
-
-    /// <summary>
-    /// Выравнивание изображения при печати. Используйте enum <see cref="PictureAlignment"/>.
+    /// Выравнивание изображения при печати. 
     /// </summary>
     public PictureAlignment PictureAlignment { get; set; } = PictureAlignment.Center;
 
@@ -157,19 +51,19 @@ public sealed partial class SkkmConnector
     // Чек
 
     /// <summary>
-    /// Тип чека / задания. Используйте enum <see cref="CheckType"/>.
+    /// Тип чека / задания.
     /// </summary>
     public CheckType PaymentType { get; set; } = CheckType.Sale;
 
     /// <summary>
-    /// Только обработанные операции. Параметр <c>isProcessed</c> в <see cref="GetOperationLast"/>.
+    /// Только обработанные операции. 
     /// </summary>
     public bool IsProcessed { get; set; }
 
     /// <summary>
     /// Система налогообложения. 
     /// </summary>
-    public TaxSystem TaxVariant { get; set; } = TaxSystem.Osn;
+    public TaxSystem TaxVariant { get; private set; } = TaxSystem.Osn;
 
     /// <summary>
     /// Задать систему налогообложения на смену.
@@ -177,7 +71,7 @@ public sealed partial class SkkmConnector
     public void SetTaxType(TaxSystem taxVariant) => TaxVariant = taxVariant;
 
     /// <summary>
-    /// Часовая зона. Используйте enum <see cref="CheckTimeZone"/>.
+    /// Часовая зона.
     /// </summary>
     public CheckTimeZone? TimeZone { get; set; }
 
@@ -185,7 +79,7 @@ public sealed partial class SkkmConnector
     /// Чек только в электронном виде (без печати на бумаге).
     /// true — не печатать; для обычной печати оставляйте false.
     /// </summary>
-    public bool Electronically { get; set; }
+    public bool IsElectronically { get; set; }
 
     /// <summary>
     /// Текст для печати перед товарной частью
@@ -215,7 +109,7 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Признак применения ККТ при осуществлении расчета в безналичном порядке в сети «Интернет»
     /// </summary>
-    public bool OperationOnline { get; set; }
+    public bool IsOperationOnline { get; set; }
 
     /// <summary>
     /// Дополнительный реквизит чека (БСО), тег 1192
@@ -232,12 +126,12 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Дата документа-основания отраслевого реквизита чека.
     /// </summary>
-    public string IndustryDocumentDate { get; set; } = "";
+    public string IndustryAttributeDocumentDate { get; set; } = "";
 
     /// <summary>
     /// Номер документа-основания отраслевого реквизита чека.
     /// </summary>
-    public string IndustryDocumentNumber { get; set; } = "";
+    public string IndustryAttributeDocumentNumber { get; set; } = "";
 
     /// <summary>
     /// Значение отраслевого реквизита чека.
@@ -273,51 +167,73 @@ public sealed partial class SkkmConnector
     /// </summary>
     public string OperationalAttributeData { get; set; } = "";
 
-    /// <summary>
-    /// Детализация безналичных оплат. Добавляйте объекты <see cref="ElectronicPayment"/>
-    /// (Amount, PaymentMethod, Identifiers, AdditionalInformation).
-    /// </summary>
-    public List<ElectronicPayment> ElectronicPayments { get; } = new();
+    // Информация о безналичной оплаты
 
     /// <summary>
-    /// Признак агента. Используйте enum <see cref="AgentType"/>.
+    /// Сумма безналичной оплаты по транзакции. Если 0 и остальные поля пусты — детализация не передаётся.
+    /// </summary>
+    public decimal ElectronicPaymentAmount { get; set; }
+
+    /// <summary>
+    /// Признак способа безналичной оплаты.
+    /// </summary>
+    public ElectronicPaymentMethod ElectronicPaymentMethod {  get; set; }
+
+    /// <summary>
+    /// Идентификаторы безналичной оплаты.
+    /// </summary>
+    public string ElectronicPaymentIdentifiers { get; set; } = "";
+
+    /// <summary>
+    /// Дополнительные сведения о безналичной оплате.
+    /// </summary>
+    public string ElectronicPaymentAdditionalInformation { get; set; } = "";
+
+    /// <summary>
+    /// Детализация нескольких безналичных оплат. Если список не пуст, в чек уходит он,
+    /// а не одна оплата из полей ElectronicPaymentAmount / Method / Identifiers / AdditionalInformation.
+    /// </summary>
+    public List<ElectronicPayment> ElectronicPayments { get; } = [];
+
+    /// <summary>
+    /// Признак агента
     /// </summary>
     public AgentType? AgentSign { get; set; }
 
     /// <summary>
     /// Операция платёжного агента.
     /// </summary>
-    public string AgentPayingAgentOperation { get; set; } = "";
+    public string PayingAgentOperation { get; set; } = "";
 
     /// <summary>
     /// Телефон(ы) платёжного агента.
     /// </summary>
-    public string[]? AgentPayingAgentPhone { get; set; }
+    public string[]? PayingAgentPhone { get; set; }
 
     /// <summary>
     /// Телефон(ы) оператора по приёму платежей.
     /// </summary>
-    public string[]? AgentReceivePaymentsOperatorPhone { get; set; }
+    public string[]? ReceivePaymentsOperatorPhone { get; set; }
 
     /// <summary>
     /// Телефон(ы) оператора перевода.
     /// </summary>
-    public string[]? AgentMoneyTransferOperatorPhone { get; set; }
+    public string[]? MoneyTransferOperatorPhone { get; set; }
 
     /// <summary>
     /// Наименование оператора перевода.
     /// </summary>
-    public string AgentMoneyTransferOperatorName { get; set; } = "";
+    public string MoneyTransferOperatorName { get; set; } = "";
 
     /// <summary>
     /// Адрес оператора перевода.
     /// </summary>
-    public string AgentMoneyTransferOperatorAddress { get; set; } = "";
+    public string MoneyTransferOperatorAddress { get; set; } = "";
 
     /// <summary>
     /// ИНН оператора перевода.
     /// </summary>
-    public string AgentMoneyTransferOperatorVatin { get; set; } = "";
+    public string MoneyTransferOperatorVatin { get; set; } = "";
 
     /// <summary>
     /// Наименование поставщика.
@@ -381,10 +297,29 @@ public sealed partial class SkkmConnector
     public string? CustomerAddress { get; set; }
 
     /// <summary>
-    /// Суммы оплаты. Создайте объект <see cref="Payments"/>
-    /// (Cash, ElectronicPayment, AdvancePayment, Credit, CashProvision).
+    /// Сумма наличной оплаты.
     /// </summary>
-    public Payments Payments { get; set; } = new();
+    public decimal Cash { get; set; }
+
+    /// <summary>
+    /// Сумма безналичными средствами.
+    /// </summary>
+    public decimal ElectronicPayment { get; set; }
+
+    /// <summary>
+    /// Сумма предоплатой (зачётом аванса).
+    /// </summary>
+    public decimal AdvancePayment { get; set; }
+
+    /// <summary>
+    /// Сумма постоплатой (в кредит).
+    /// </summary>
+    public decimal Credit { get; set; }
+
+    /// <summary>
+    /// Сумма встречным предоставлением.
+    /// </summary>
+    public decimal CashProvision { get; set; }
 
     /// <summary>
     /// Позиции чека
@@ -485,10 +420,25 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Добавление изображения в чек или печатный шаблон. Картинка передаётся в Base64;
-    /// ширина и высота — в точках (0 — размер изображения).
+    /// Добавление изображения из файла в чек или печатный шаблон.
+    /// Файл (BMP или PNG) читается и кодируется в Base64; ширина и высота — в точках (0 — размер изображения).
     /// </summary>
     public PictureLine AddPicture(
+        string filePath,
+        PictureAlignment alignment = PictureAlignment.Center,
+        int width = 0,
+        int height = 0)
+    {
+        if (!LoadPicture(filePath, out var base64))
+            return new PictureLine { Alignment = alignment };
+
+        return AddPictureBase64(base64, alignment, width, height);
+    }
+
+    /// <summary>
+    /// Добавление изображения в Base64 в чек или печатный шаблон.
+    /// </summary>
+    internal PictureLine AddPictureBase64(
         string valueBase64,
         PictureAlignment alignment = PictureAlignment.Center,
         int width = 0,
@@ -527,11 +477,77 @@ public sealed partial class SkkmConnector
     /// </summary>
     public string CorrectionNumber { get; set; } = "";
 
+    // Суммы НДС по ставкам для чека коррекции ФФД 1.05 (плоские поля).
+
     /// <summary>
-    /// Суммы НДС по ставкам для чека коррекции ФФД 1.05.
-    /// Создайте объект <see cref="Correction105Taxes"/> и заполните нужные ставки.
+    /// Сумма расчёта без НДС (коррекция 1.05).
     /// </summary>
-    public Correction105Taxes? Correction105Taxes { get; set; }
+    public decimal CorrectionSumTaxNone { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 0% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax0 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 5% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax5 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 7% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax7 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 10% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax10 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 18% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax18 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 20% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax20 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС 22% (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax22 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 10/110 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax110 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 18/118 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax118 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 20/120 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax120 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 22/122 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax122 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 5/105 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax105 { get; set; }
+
+    /// <summary>
+    /// Сумма НДС по расчётной ставке 7/107 (коррекция 1.05).
+    /// </summary>
+    public decimal CorrectionSumTax107 { get; set; }
 
     // Маркировка (вход)
 
@@ -541,7 +557,7 @@ public sealed partial class SkkmConnector
     public string MarkingCode { get; set; } = "";
 
     /// <summary>
-    /// Планируемый статус товара. Используйте enum <see cref="MarkingPlannedStatus"/>.
+    /// Планируемый статус товара.
     /// </summary>
     public MarkingPlannedStatus PlannedStatus { get; set; } = MarkingPlannedStatus.Sold;
 
@@ -551,7 +567,7 @@ public sealed partial class SkkmConnector
     public decimal MarkingQuantity { get; set; } = 1;
 
     /// <summary>
-    /// Мера количества предмета расчёта. Используйте enum <see cref="MeasureOfQuantity"/>.
+    /// Мера количества предмета расчёта.
     /// </summary>
     public MeasureOfQuantity MeasureOfQuantity { get; set; }
 
@@ -581,7 +597,7 @@ public sealed partial class SkkmConnector
     public string RequestKmGuid { get; set; } = "";
 
     /// <summary>
-    /// Признак подтверждения кода маркировки. Используйте enum <see cref="KmConfirmationType"/>.
+    /// Признак подтверждения кода маркировки.
     /// </summary>
     public KmConfirmationType ConfirmationType { get; set; }
 }

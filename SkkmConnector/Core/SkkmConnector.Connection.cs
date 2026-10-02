@@ -1,22 +1,15 @@
 namespace RBSoftSkkm;
+
+// Вход: подключение к серверу ККМ и общие параметры запроса (кассир, пул, фискализация).
 public sealed partial class SkkmConnector
 {
     // Подключение
 
     /// <summary>
-    /// Хост сервера ККМ (IP или DNS). Можно менять между запросами, пока программа запущена.
+    /// Адрес сервера ККМ в виде хост:порт (например, "localhost:4398").
+    /// Порт можно опустить — тогда используется 4398. Можно менять между запросами.
     /// </summary>
-    public string Host { get; set; } = "localhost";
-
-    /// <summary>
-    /// TCP-порт сервера ККМ. Можно менять между запросами, пока программа запущена.
-    /// </summary>
-    public int Port { get; set; } = 4398;
-
-    /// <summary>
-    /// HTTPS вместо HTTP
-    /// </summary>
-    public bool UseHttps { get; set; }
+    public string Address { get; set; } = "localhost:4398";
 
     /// <summary>
     /// Таймаут запроса к серверу ККМ. По умолчанию 60 секунд.
@@ -41,32 +34,30 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Имя (ФИО) кассира.
     /// </summary>
-    public string CashierName { get; set; } = "";
+    public string CashierName { get; private set; } = "";
 
     /// <summary>
-    /// ИНН кассира (при наличии)
+    /// ИНН кассира (при наличии).
     /// </summary>
-    public string CashierVatin { get; set; } = "";
+    public string CashierVatin { get; private set; } = "";
 
     /// <summary>
-    /// Задать имя (ФИО) кассира на смену.
+    /// Задать кассира на смену
     /// </summary>
-    public void SetCashierName(string cashierName) => CashierName = cashierName;
+    public void SetCashier(string cashierName)
+    {
+        CashierName = cashierName;
+        CashierVatin = "";
+    }
 
     /// <summary>
-    /// Задать ИНН кассира на смену.
+    /// Задать кассира на смену
     /// </summary>
-    public void SetCashierVatin(string cashierVatin) => CashierVatin = cashierVatin;
-
-    /// <summary>
-    /// Логин для Basic Auth при получении токена. По умолчанию Admin.
-    /// </summary>
-    public string AuthUserName { get; set; } = "Admin";
-
-    /// <summary>
-    /// Пароль для Basic Auth при получении токена. По умолчанию Admin.
-    /// </summary>
-    public string AuthPassword { get; set; } = "Admin";
+    public void SetCashier(string cashierName, string cashierVatin)
+    {
+        CashierName = cashierName;
+        CashierVatin = cashierVatin;
+    }
 
     /// <summary>
     /// Имя пула устройств.
@@ -89,41 +80,182 @@ public sealed partial class SkkmConnector
     public string PictureId { get; set; } = "";
 
     /// <summary>
-    /// Идентификатор пользователя сервера ККМ.
-    /// </summary>
-    public string UserId { get; set; } = "";
-
-    /// <summary>
-    /// Номер ФН
-    /// </summary>
-    public string FnNumber { get; set; } = "";
-
-    /// <summary>
     /// Коды маркировки для проверки.
     /// </summary>
     public List<string> MarkingCodes { get; } = [];
 
     /// <summary>
-    /// Настройки кассы для добавления или изменения.
-    /// Создайте объект <see cref="DeviceSettings"/> и заполните нужные поля.
+    /// Регистрационный номер ККТ (РНМ) для фискализации.
     /// </summary>
-    public DeviceSettings? DeviceSettings { get; set; }
+    public string FiscalizationRnNumber { get; set; } = "";
 
     /// <summary>
-    /// Настройки службы печати. Создайте объект <see cref="ServiceSettings"/>
-    /// (WcfServicePort, WebServicePort, ServiceTimeOut, ProxyServerSettings, MaxQueueSize, RepeatPrintingOnError).
+    /// Системы налогообложения, поддерживаемые ККТ
     /// </summary>
-    public ServiceSettings? ServiceSettings { get; set; }
+    public TaxSystem[] FiscalizationTaxationSystems { get; set; } = [];
 
     /// <summary>
-    /// Пользователь сервера ККМ. Создайте объект <see cref="ServiceUser"/>
-    /// (Id, UserName, FullName, Vatin, Role, TokenId, Password).
+    /// ИНН организации.
     /// </summary>
-    public ServiceUser? ServiceUser { get; set; }
+    public string FiscalizationVatin { get; set; } = "";
 
     /// <summary>
-    /// Параметры фискализации / перерегистрации.
-    /// Создайте объект <see cref="FiscalizationParameters"/> и заполните нужные поля.
+    /// Наименование организации.
     /// </summary>
-    public FiscalizationParameters? FiscalizationParameters { get; set; }
+    public string FiscalizationCompanyName { get; set; } = "";
+
+    /// <summary>
+    /// Номер фискального накопителя (ФН).
+    /// </summary>
+    public string FiscalizationFn { get; set; } = "";
+
+    /// <summary>
+    /// Версия ФФД ККТ.
+    /// </summary>
+    public string FiscalizationFfdVersionKkt { get; set; } = "";
+
+    /// <summary>
+    /// Версия ФФД ФН.
+    /// </summary>
+    public string FiscalizationFfdVersionFn { get; set; } = "";
+
+    /// <summary>
+    /// Коды причин перерегистрации (метки).
+    /// </summary>
+    public string FiscalizationRegistrationLabelCodes { get; set; } = "";
+
+    /// <summary>
+    /// Адрес ОФД.
+    /// </summary>
+    public string FiscalizationOfdAddress { get; set; } = "";
+
+    /// <summary>
+    /// Порт ОФД.
+    /// </summary>
+    public int FiscalizationOfdPort { get; set; }
+
+    /// <summary>
+    /// Номер автомата (для автоматического режима).
+    /// </summary>
+    public string FiscalizationAutomaticNumber { get; set; } = "";
+
+    /// <summary>
+    /// Адрес электронной почты отправителя.
+    /// </summary>
+    public string FiscalizationSenderEmail { get; set; } = "";
+
+    /// <summary>
+    /// Код причины перерегистрации.
+    /// </summary>
+    public FiscalizationReasonCode FiscalizationReasonCode { get; set; }
+
+    /// <summary>
+    /// Хост ИСМ (информационная система маркировки).
+    /// </summary>
+    public string FiscalizationIsmHost { get; set; } = "";
+
+    /// <summary>
+    /// Порт ИСМ.
+    /// </summary>
+    public string FiscalizationIsmPort { get; set; } = "";
+
+    /// <summary>
+    /// Адрес сайта ФНС.
+    /// </summary>
+    public string FiscalizationFnsUrl { get; set; } = "";
+
+    /// <summary>
+    /// ИНН ОФД.
+    /// </summary>
+    public string FiscalizationOfdVatin { get; set; } = "";
+
+    /// <summary>
+    /// Наименование ОФД.
+    /// </summary>
+    public string FiscalizationOfdName { get; set; } = "";
+
+    /// <summary>
+    /// Признаки агента, поддерживаемые ККТ.
+    /// </summary>
+    public AgentType[] FiscalizationAgentTypes { get; set; } = [];
+
+    /// <summary>
+    /// Признак БСО.
+    /// </summary>
+    public bool FiscalizationIsBsoSign { get; set; }
+
+    /// <summary>
+    /// Работа с маркировкой.
+    /// </summary>
+    public bool FiscalizationIsMarking { get; set; }
+
+    /// <summary>
+    /// Ломбард.
+    /// </summary>
+    public bool FiscalizationIsPawnshop { get; set; }
+
+    /// <summary>
+    /// Страхование.
+    /// </summary>
+    public bool FiscalizationIsAssurance { get; set; }
+
+    /// <summary>
+    /// Автоматический режим.
+    /// </summary>
+    public bool FiscalizationIsAutomatic { get; set; }
+
+    /// <summary>
+    /// Торговый автомат (вендинг).
+    /// </summary>
+    public bool FiscalizationIsVending { get; set; }
+
+    /// <summary>
+    /// Автоматический принтер.
+    /// </summary>
+    public bool FiscalizationIsAutomaticPrinter { get; set; }
+
+    /// <summary>
+    /// Расчёты только в интернете.
+    /// </summary>
+    public bool FiscalizationIsOnline { get; set; }
+
+    /// <summary>
+    /// Проведение лотерей.
+    /// </summary>
+    public bool FiscalizationIsLottery { get; set; }
+
+    /// <summary>
+    /// Проведение азартных игр.
+    /// </summary>
+    public bool FiscalizationIsGambling { get; set; }
+
+    /// <summary>
+    /// Продажа подакцизных товаров.
+    /// </summary>
+    public bool FiscalizationIsExcisable { get; set; }
+
+    /// <summary>
+    /// Применение в сфере услуг.
+    /// </summary>
+    public bool FiscalizationIsService { get; set; }
+
+    /// <summary>
+    /// Шифрование данных.
+    /// </summary>
+    public bool FiscalizationIsEncrypted { get; set; }
+
+    /// <summary>
+    /// Автономный режим.
+    /// </summary>
+    public bool FiscalizationIsOffline { get; set; }
+
+    /// <summary>
+    /// Услуги общественного питания.
+    /// </summary>
+    public bool FiscalizationIsCateringServices { get; set; }
+
+    /// <summary>
+    /// Оптовая торговля.
+    /// </summary>
+    public bool FiscalizationIsWholesaleTrade { get; set; }
 }

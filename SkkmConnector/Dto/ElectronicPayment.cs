@@ -6,7 +6,7 @@ namespace RBSoftSkkm;
 /// Amount - Сумма оплаты безналичными
 /// </para>
 /// <para>
-/// PaymentMethod - Признак способа оплаты. Используйте enum <see cref="ElectronicPaymentMethod"/>
+/// PaymentMethod - Признак способа оплаты.
 /// </para>
 /// <para>
 /// Identifiers - Идентификаторы безналичной оплаты
@@ -23,7 +23,7 @@ public sealed class ElectronicPayment
     public decimal Amount { get; set; }
 
     /// <summary>
-    /// Признак способа оплаты безналичными. Используйте enum <see cref="ElectronicPaymentMethod"/>.
+    /// Признак способа оплаты безналичными.
     /// </summary>
     public ElectronicPaymentMethod? PaymentMethod { get; set; }
 

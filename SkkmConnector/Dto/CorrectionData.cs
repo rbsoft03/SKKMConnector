@@ -5,7 +5,7 @@ namespace RBSoftSkkm;
 /// <summary>
 /// Данные коррекции:
 /// <para>
-/// Type - Тип коррекции. Используйте enum <see cref="CorrectionTypes"/>
+/// Type - Тип коррекции.
 /// </para>
 /// <para>
 /// Description - Описание коррекции
@@ -20,7 +20,7 @@ namespace RBSoftSkkm;
 public sealed class CorrectionData
 {
     /// <summary>
-    /// Тип коррекции. Используйте enum <see cref="CorrectionTypes"/>.
+    /// Тип коррекции.
     /// </summary>
     public CorrectionTypes Type { get; set; } = CorrectionTypes.Самостоятельно;
 

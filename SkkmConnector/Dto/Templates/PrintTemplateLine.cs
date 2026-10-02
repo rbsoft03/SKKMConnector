@@ -5,16 +5,16 @@ namespace RBSoftSkkm;
 /// <summary>
 /// Строка печатного шаблона:
 /// <para>
-/// Type - Тип строки. Используйте enum <see cref="PrintLineType"/>
+/// Type - Тип строки.
 /// </para>
 /// <para>
 /// Line / LineRight - Текст (левая / правая часть)
 /// </para>
 /// <para>
-/// Alignment - Выравнивание. Используйте enum <see cref="PrintAlignment"/>
+/// Alignment - Выравнивание.
 /// </para>
 /// <para>
-/// Font - Шрифт. Используйте enum <see cref="PrintFont"/>
+/// Font - Шрифт.
 /// </para>
 /// <para>
 /// Width / Scale - Ширина и масштаб
@@ -23,10 +23,10 @@ namespace RBSoftSkkm;
 /// Barcode / Picture - Штрихкод или картинка (по типу строки)
 /// </para>
 /// </summary>
-public sealed class PrintLine
+public sealed class PrintTemplateLine : IPrintLine
 {
     /// <summary>
-    /// Тип строки. Используйте enum <see cref="PrintLineType"/>. Если не указано — Text.
+    /// Тип строки. Если не указано — Text.
     /// </summary>
     public PrintLineType Type { get; set; } = PrintLineType.Text;
 
@@ -51,12 +51,12 @@ public sealed class PrintLine
     public string? LineRight { get; set; }
 
     /// <summary>
-    /// Выравнивание. Используйте enum <see cref="PrintAlignment"/>. Если не указано — Left.
+    /// Выравнивание. Если не указано — Left.
     /// </summary>
     public PrintAlignment Alignment { get; set; }
 
     /// <summary>
-    /// Шрифт. Используйте enum <see cref="PrintFont"/>. Если не указано — Normal.
+    /// Шрифт. Если не указано — Normal.
     /// </summary>
     public PrintFont Font { get; set; }
 

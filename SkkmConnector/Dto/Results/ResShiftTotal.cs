@@ -8,6 +8,12 @@ namespace RBSoftSkkm
     public class ResShiftTotal
     {
         /// <summary>
+        /// Счётчики итогов смены прочитаны из ФН.
+        /// </summary>
+        [JsonPropertyName("IsCountersReaded")]
+        public bool IsCountersReaded { get; set; }
+
+        /// <summary>
         /// Номер смены.
         /// </summary>
         [JsonPropertyName("ShiftNumber")]

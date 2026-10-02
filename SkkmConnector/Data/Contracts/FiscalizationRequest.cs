@@ -95,7 +95,7 @@ internal sealed class FiscalizationRequest : CheckbaseParameters
     /// Порт ИСМ.
     /// </summary>
     [JsonPropertyName("IsmPort")]
-    public int? IsmPort { get; set; }
+    public string? IsmPort { get; set; }
 
     /// <summary>
     /// Адрес сайта ФНС.
@@ -216,16 +216,4 @@ internal sealed class FiscalizationRequest : CheckbaseParameters
     /// </summary>
     [JsonPropertyName("IsWholesaleTrade")]
     public bool? IsWholesaleTrade { get; set; }
-
-    /// <summary>
-    /// Адрес расчётов.
-    /// </summary>
-    [JsonPropertyName("SaleAddress")]
-    public string? SaleAddress { get; set; }
-
-    /// <summary>
-    /// Место расчётов.
-    /// </summary>
-    [JsonPropertyName("SaleLocation")]
-    public string? SaleLocation { get; set; }
 }

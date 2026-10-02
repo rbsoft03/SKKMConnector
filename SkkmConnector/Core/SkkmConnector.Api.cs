@@ -6,13 +6,13 @@ namespace RBSoftSkkm;
 public sealed partial class SkkmConnector
 {
     /// <summary>
-    /// Очищает всё состояние: входные данные запроса и ответ прошлого вызова.
+    /// Очищает входные данные чека/операции и результат прошлого вызова.
     /// </summary>
     public void Clear()
     {
         PaymentType = CheckType.Sale;
-        Electronically = false;
-        OperationOnline = false;
+        IsElectronically = false;
+        IsOperationOnline = false;
         TimeZone = null;
         TextBefore = "";
         TextAfter = "";
@@ -21,8 +21,16 @@ public sealed partial class SkkmConnector
         SenderEmail = "";
         AdditionalAttribute = "";
         _positions.Clear();
+        Cash = 0;
+        ElectronicPayment = 0;
+        AdvancePayment = 0;
+        Credit = 0;
+        CashProvision = 0;
+        ElectronicPaymentAmount = 0;
+        ElectronicPaymentMethod = default;
+        ElectronicPaymentIdentifiers = "";
+        ElectronicPaymentAdditionalInformation = "";
         ElectronicPayments.Clear();
-        Payments = new Payments();
         
         CustomerInfo = "";
         CustomerVatin = "";
@@ -35,20 +43,20 @@ public sealed partial class SkkmConnector
         CustomerAddress = "";
 
         AgentSign = null;
-        AgentPayingAgentOperation = "";
-        AgentPayingAgentPhone = null;
-        AgentReceivePaymentsOperatorPhone = null;
-        AgentMoneyTransferOperatorPhone = null;
-        AgentMoneyTransferOperatorName = "";
-        AgentMoneyTransferOperatorAddress = "";
-        AgentMoneyTransferOperatorVatin = "";
+        PayingAgentOperation = "";
+        PayingAgentPhone = null;
+        ReceivePaymentsOperatorPhone = null;
+        MoneyTransferOperatorPhone = null;
+        MoneyTransferOperatorName = "";
+        MoneyTransferOperatorAddress = "";
+        MoneyTransferOperatorVatin = "";
         VendorName = "";
         VendorPhones = null;
         VendorVatin = "";
 
         IndustryIdentifierFoiv = "";
-        IndustryDocumentDate = "";
-        IndustryDocumentNumber = "";
+        IndustryAttributeDocumentDate = "";
+        IndustryAttributeDocumentNumber = "";
         IndustryAttributeValue = "";
         UserAttributeName = "";
         UserAttributeValue = "";
@@ -60,12 +68,23 @@ public sealed partial class SkkmConnector
         CorrectionDescription = "";
         CorrectionDate = default;
         CorrectionNumber = "";
-        Correction105Taxes = null;
+        CorrectionSumTaxNone = 0;
+        CorrectionSumTax0 = 0;
+        CorrectionSumTax5 = 0;
+        CorrectionSumTax7 = 0;
+        CorrectionSumTax10 = 0;
+        CorrectionSumTax18 = 0;
+        CorrectionSumTax20 = 0;
+        CorrectionSumTax22 = 0;
+        CorrectionSumTax105 = 0;
+        CorrectionSumTax107 = 0;
+        CorrectionSumTax110 = 0;
+        CorrectionSumTax118 = 0;
+        CorrectionSumTax120 = 0;
+        CorrectionSumTax122 = 0;
 
         CashAmount = 0;
         TextForPrint = "";
-        PictureName = "";
-        PictureBase64 = "";
         PictureAlignment = PictureAlignment.Center;
 
         MarkingCode = "";
@@ -86,30 +105,10 @@ public sealed partial class SkkmConnector
         Ok = false;
         ErrorCode = 0;
         ErrorDescription = "";
-        LastResult = default;
-        FiscalResult = null;
-        FiscalSign = "";
-        FnNumber = "";
-        ShiftNumber = 0;
-        CheckNumber = 0;
-        CheckNumberInShift = 0;
-        RnNumber = "";
-        FnsUrl = "";
-        DocumentId = "";
-        ServerDateTime = "";
-        FiscalDateTime = "";
-        DeviceDateTime = "";
-        CurrentShiftState = null;
-        BacklogDocumentsCount = 0;
-        BacklogFirstDocumentNumber = 0;
-        BacklogFirstDocumentDateTime = null;
-        FnValidityDate = "";
-        FnDaysResources = 0;
-        IsFnPresent = false;
-        IsFiscal = false;
-        FnWarnings = null;
-        CashBalance = 0;
-        NonZeroSum = 0;
+        Result = default;
+
+        // Сброс всех данных ответа
+        ResetResponse();
     }
 
     /// <summary>
@@ -124,7 +123,7 @@ public sealed partial class SkkmConnector
     }
 
     /// <summary>
-    /// Очищает предыдущий чек и задаёт только тип операции для чека. Кассир и СНО берутся из ранее заданных <see cref="SetCashierName"/> / <see cref="SetTaxType"/> (они держатся всю смену)
+    /// Очищает предыдущий чек и задаёт только тип операции для чека. 
     /// </summary>
     public void NewCheck(CheckType paymentType)
         {
@@ -200,7 +199,6 @@ public sealed partial class SkkmConnector
 
     /// <summary>
     /// Очищает предыдущий шаблон чека и задаёт его имя.
-    /// Дальше собирайте чек как обычно: <see cref="AddPosition"/>, <see cref="Payments"/>,
     /// затем <see cref="AddCheckTemplate()"/>.
     /// </summary>
     public void NewCheckTemplate(string name)
@@ -211,7 +209,6 @@ public sealed partial class SkkmConnector
 
     /// <summary>
     /// Очищает предыдущий шаблон чека, задаёт имя и тип операции.
-    /// Кассир и СНО берутся из <see cref="SetCashierName"/> / <see cref="SetTaxType"/>.
     /// </summary>
     public void NewCheckTemplate(string name, CheckType paymentType)
     {
@@ -240,292 +237,333 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Проверка доступности сервера ККМ. Не требует передачи ключа доступа (api_key)
     /// </summary>
-    public async Task Ping()
+    public async Task<bool> Ping()
     {
         await Get("ping");
+        if (Result.ValueKind == JsonValueKind.Object)
+        {
+            if (Result.TryGetProperty("product", out var product))
+                ServerProduct = product.GetString() ?? "";
+            if (Result.TryGetProperty("version", out var version))
+                ServerVersion = version.GetString() ?? "";
+        }
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка зарегистрированных ККТ
     /// </summary>
-    public async Task GetDeviceList()
+    public async Task<bool> GetDeviceList()
     {
         await Get("kkt/list");
         Devices = ReadResult<DeviceListResponse[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Получение подробной информации об устройстве ККТ
     /// </summary>
-    public async Task Connect()
+    public async Task<bool> GetKktInfo()
     {
         await Get($"kkt?{DeviceQuery}");
         Kkt = ReadResult<DataKkt>();
-        if (Kkt?.Status != null)
-            Status = Kkt.Status;
-        if (Kkt?.Device != null)
-            LineLength = Kkt.Device.LineLength;
-        else if (Kkt?.Status != null)
-            LineLength = Kkt.Status.LineLength;
-        if (!string.IsNullOrWhiteSpace(Kkt?.Fn?.SaleLocation))
-            SaleLocation = Kkt!.Fn!.SaleLocation!;
+        if (Kkt == null)
+            return Ok;
+        ServerVersion = Kkt.ServerVersion ?? "";
+        ApplyStatus(Kkt.Status);
+        ApplyDeviceInfo(Kkt.Device);
+        ApplyFnInfo(Kkt.Fn);
+        return Ok;
     }
 
     /// <summary>
     /// Получение расширенного статуса ККТ
     /// </summary>
-    public async Task GetStatus()
+    public async Task<bool> GetStatus()
     {
         await Get($"kkt/status?{DeviceQuery}");
-        Status = ReadResult<KktStatus>();
-        if (Status == null)
-            return;
-        LineLength = Status.LineLength;
-        ShiftNumber = Status.ShiftNumber;
-        CheckNumber = Status.DocNumber;
+        ApplyStatus(ReadResult<KktStatus>());
+        return Ok;
     }
 
     /// <summary>
     /// Получение краткого статуса смены и очереди ОФД
     /// </summary>
-    public async Task GetShiftStatus()
+    public async Task<bool> GetShiftStatus()
     {
         await Get($"kkt/shift/status?{DeviceQuery}");
         ShiftStatus = ReadResult<ResponseCurrentStatus>();
         if (ShiftStatus == null)
-            return;
+            return Ok;
         ShiftNumber = ShiftStatus.ShiftNumber;
         CheckNumber = ShiftStatus.CheckNumber;
+        CurrentShiftState = ShiftStatus.ShiftState;
+        _backlog = ShiftStatus.Backlog;
+        return Ok;
     }
 
     /// <summary>
     /// Открытие кассовой смены
     /// </summary>
-    public async Task OpenShift()
+    public async Task<bool> OpenShift()
     {
         await Post("shift/open", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Закрытие кассовой смены (Z-отчёт)
     /// </summary>
-    public async Task CloseShift()
+    public async Task<bool> CloseShift()
     {
         await Post("shift/z", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Формирование X-отчёта (без закрытия смены)
     /// </summary>
-    public async Task ReportX()
+    public async Task<bool> ReportX()
     {
         await Post("shift/x", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Формирование отчёта о текущем состоянии расчётов
     /// </summary>
-    public async Task ReportSettlement()
+    public async Task<bool> ReportSettlement()
     {
         await Post("report/settlement", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает X-отчёт по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportX(string documentId)
+    public async Task<bool> GetReportX(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("shift/x");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает Z-отчёт по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportZ(string documentId)
+    public async Task<bool> GetReportZ(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("shift/z");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает результат открытия смены по идентификатору документа (docId)
     /// </summary>
-    public async Task GetOpenShift(string documentId)
+    public async Task<bool> GetOpenShift(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("shift/open");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает отчёт о состоянии расчётов по идентификатору документа (docId)
     /// </summary>
-    public async Task GetReportSettlement(string documentId)
+    public async Task<bool> GetReportSettlement(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("report/settlement");
+        return Ok;
     }
 
     /// <summary>
     /// Получение необнуляемых (накопительных) счётчиков ККТ
     /// </summary>
-    public async Task GetOverAll()
+    public async Task<bool> GetOverAll()
     {
         await Get($"kkt/counters/overall?{DeviceQuery}");
-        NonZeroSum = ReadResult<OverallTotals>()?.Counters?.Sales?.Sum ?? 0;
+        OverallTotals = ReadResult<OverallTotals>();
+        NonZeroSum = OverallTotals?.Counters?.Sales?.Sum ?? 0;
+        return Ok;
     }
 
     /// <summary>
     /// Получение максимальной ширины строки чека устройства
     /// </summary>
-    public async Task GetLineLength()
+    public async Task<bool> GetLineLength()
     {
         await Get($"kkt/lineLength?{DeviceQuery}");
         var length = ReadResult<LineLengthV2>();
         if (length == null)
-            return;
+            return Ok;
         LineLength = length.LineLength;
         LineLengthPixels = length.LineLengthPixels;
+        return Ok;
     }
 
     /// <summary>
     /// Получение счётчиков за смену
     /// </summary>
-    public async Task GetTotals()
+    public async Task<bool> GetTotals()
     {
         await Get($"kkt/counters/shift?{DeviceQuery}");
         ShiftTotals = ReadResult<ResShiftTotal>();
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка Z-отчётов за период
     /// </summary>
-    public async Task GetShiftList()
+    public async Task<bool> GetShiftList()
     {
         var extra = ReportType > 0 ? $"reportType={ReportType}" : null;
         await GetReportList("shift/z/list", extra);
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка открытий смен за период
     /// </summary>
-    public async Task GetOpenShiftList()
+    public async Task<bool> GetOpenShiftList()
     {
         await GetReportList("shift/open/list");
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка X-отчётов за период
     /// </summary>
-    public async Task GetReportXList()
+    public async Task<bool> GetReportXList()
     {
         await GetReportList("shift/x/list");
+        return Ok;
     }
 
     /// <summary>
     /// Список отчётов о состоянии расчётов по устройству за период
     /// </summary>
-    public async Task GetReportSettlementList()
+    public async Task<bool> GetReportSettlementList()
     {
         await GetReportList("report/settlement/list");
+        return Ok;
     }
 
     /// <summary>
     /// Печать кассового чека
     /// </summary>
-    public async Task PrintCheck()
+    public async Task<bool> PrintCheck()
     {
         if (!ValidateCheck())
-            return;
+            return Ok;
         await Post("check", CheckBody());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронно поставить фискальный чек в очередь печати
     /// </summary>
-    public async Task PrintCheckAsync()
+    public async Task<bool> PrintCheckAsync()
     {
         if (!ValidateCheck())
-            return;
+            return Ok;
         await Post("check/async", CheckBody());
+        return Ok;
     }
 
     /// <summary>
     /// Печать чека коррекции для ФФД 1.2
     /// </summary>
-    public async Task PrintCheckCorrection120()
+    public async Task<bool> PrintCheckCorrection120()
     {
+        if (!ValidateCorrection120())
+            return Ok;
         await Post("correction120", Correction120Body());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронно печатает чек коррекции для ФФД 1.2
     /// </summary>
-    public async Task PrintCheckCorrection120Async()
+    public async Task<bool> PrintCheckCorrection120Async()
     {
+        if (!ValidateCorrection120())
+            return Ok;
         await Post("correction120/async", Correction120Body());
+        return Ok;
     }
 
     /// <summary>
     /// Печать чека коррекции для ФФД 1.0.5
     /// </summary>
-    public async Task PrintCheckCorrection105()
+    public async Task<bool> PrintCheckCorrection105()
     {
+        if (!ValidateCorrection105())
+            return Ok;
         await Post("correction105", Correction105Body());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронно ставит печать чека коррекции для ФФД 1.0.5.
     /// </summary>
-    public async Task PrintCheckCorrection105Async()
+    public async Task<bool> PrintCheckCorrection105Async()
     {
+        if (!ValidateCorrection105())
+            return Ok;
         await Post("correction105/async", Correction105Body());
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает чек коррекции ФФД 1.2 по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCorrection120(string documentId)
+    public async Task<bool> GetCorrection120(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("correction120");
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка чеков коррекции ФФД 1.2
     /// </summary>
-    public async Task GetCorrection120List()
+    public async Task<bool> GetCorrection120List()
     {
         await GetCheckList("correction120/list");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает чек коррекции ФФД 1.0.5 по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCorrection105(string documentId)
+    public async Task<bool> GetCorrection105(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("correction105");
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка чеков коррекции ФФД 1.0.5
     /// </summary>
-    public async Task GetCorrection105List()
+    public async Task<bool> GetCorrection105List()
     {
         await GetCheckList("correction105/list");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает статус выполнения задания по идентификатору документа (docId)
     /// </summary>
-    public async Task GetTaskStatus(string documentId)
+    public async Task<bool> GetTaskStatus(string documentId)
     {
         DocumentId = documentId;
         await Get($"task/status?{IdQuery}");
         TaskStatus = ReadResult<ResponseTaskStatus>();
         if (TaskStatus == null)
-            return;
+            return Ok;
         if (!string.IsNullOrEmpty(TaskStatus.FiscalSign))
             FiscalSign = TaskStatus.FiscalSign!;
         if (TaskStatus.DocNumber > 0)
@@ -534,155 +572,182 @@ public sealed partial class SkkmConnector
             ShiftNumber = TaskStatus.ShiftNumber;
         if (!string.IsNullOrEmpty(TaskStatus.DocId))
             DocumentId = TaskStatus.DocId!;
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает результат операции по идентификатору документа (docId)
     /// </summary>
-    public async Task GetCheck(string documentId)
+    public async Task<bool> GetCheck(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("check");
+        return Ok;
     }
 
     /// <summary>
     /// Получение фискального признака (ФП) по номеру фискального документа (ФД)
     /// </summary>
-    public async Task GetFiscalSign(int docNumber)
+    public async Task<bool> GetFiscalSign(int docNumber)
     {
         CheckNumber = docNumber;
         await Get($"check/fiscalSign?docNumber={CheckNumber}&{DeviceQuery}");
-        if (Ok && LastResult.ValueKind == JsonValueKind.String)
-            FiscalSign = LastResult.GetString() ?? "";
+        if (Ok && Result.ValueKind == JsonValueKind.String)
+            FiscalSign = Result.GetString() ?? "";
+        return Ok;
     }
 
     /// <summary>
-    /// Печать копии чека
+    /// Печать копии чека по идентификатору документа
     /// </summary>
-    public async Task PrintCheckCopy()
+    public async Task<bool> PrintCheckCopy()
     {
-        if (string.IsNullOrWhiteSpace(DocumentId))
-            await Post($"check/copy/last?{DeviceQuery}");
-        else
-            await Post("check/copy", new CheckbaseParameters { DeviceName = DeviceName, DocId = DocumentId });
+       
+        await Post("check/copy", new CheckbaseParameters { DeviceName = DeviceName, DocId = DocumentId });
+        return Ok;
+    }
+
+    /// <summary>
+    /// Печать копии последнего чека).
+    /// </summary>
+    public async Task<bool> PrintLastCheckCopy()
+    {
+        await Post($"check/copy/last?{DeviceQuery}");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает печатную форму документа по его идентификатору (docId)
     /// </summary>
-    public async Task GetPrintForm(string documentId)
+    public async Task<bool> GetPrintForm(string documentId)
     {
         DocumentId = documentId;
         await Get($"task/form?{IdQuery}");
-        PrintForm = ReadResult<PrintFormLine[]>() ?? [];
+        PrintForm = (ReadResult<PrintFormLine[]>() ?? []).Select(x => new PrintLine(x)).ToList();
+        return Ok;
     }
 
     /// <summary>
     /// Регистрация операции внесения наличных в денежный ящик. 
     /// </summary>
-    public async Task CashIn()
+    public async Task<bool> CashIn()
     {
         await Post("cashin", CashBody());
         ApplyDocument(ReadResult<CheckDocument>());
+        return Ok;
     }
 
     /// <summary>
-    /// Регистрация операции выемки наличных из денежного ящика. Сервер возвращает документ
-    /// операции: он попадает в <see cref="Check"/>, а остаток в ящике — в <see cref="CashBalance"/>.
+    /// Регистрация операции выемки наличных из денежного ящика.
     /// </summary>
-    public async Task CashOut()
+    public async Task<bool> CashOut()
     {
         await Post("cashout", CashBody());
         ApplyDocument(ReadResult<CheckDocument>());
+        return Ok;
     }
 
     /// <summary>
     /// Открытие денежного ящика
     /// </summary>
-    public async Task OpenCashdrawer()
+    public async Task<bool> OpenCashdrawer()
     {
         await Post("cash/open", CheckBase());
         ApplyDocument(ReadResult<CheckDocument>());
+        return Ok;
     }
 
     /// <summary>
     /// Получение остатка наличных в денежном ящике
     /// </summary>
-    public async Task GetCash()
+    public async Task<bool> GetCash()
     {
         await Get($"cash?{DeviceQuery}");
         CashBalance = ReadResult<CashSum>()?.Sum ?? 0;
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает результат операции внесения наличных по идентификатору операции (docId)
     /// </summary>
-    public async Task GetCashIn(string documentId)
+    public async Task<bool> GetCashIn(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("cashin");
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка операций внесения наличных по имени устройства
     /// </summary>
-    public async Task GetCashInList()
+    public async Task<bool> GetCashInList()
     {
         await GetCheckList("cashin/list");
+        return Ok;
     }
 
     /// <summary>
     /// Возвращает результат операции выемки наличных по идентификатору операции (docId)
     /// </summary>
-    public async Task GetCashOut(string documentId)
+    public async Task<bool> GetCashOut(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("cashout");
+        return Ok;
     }
 
     /// <summary>
-    /// Загрузка изображения в выбранную ККТ
+    /// Загрузка изображения из файла в выбранную ККТ. Файл должен быть BMP или PNG —
+    /// коннектор сам проверяет формат, кодирует в Base64 и отправляет.
+    /// Имя картинки на сервере — <see cref="PictureId"/>, а если он не задан — имя файла без расширения.
     /// </summary>
-    public async Task SendPicture()
+    public async Task<bool> SendPicture(string filePath)
     {
+        if (!LoadPicture(filePath, out var base64))
+            return Ok;
+
         await Post("picture", new UploadPicture
         {
             DeviceName = DeviceName,
-            PictureName = PictureName,
-            Base64 = PictureBase64,
+            PictureName = string.IsNullOrEmpty(PictureId) ? Path.GetFileNameWithoutExtension(filePath) : PictureId,
+            Base64 = base64,
             Alignment = (int)PictureAlignment
         });
+        return Ok;
     }
 
     /// <summary>
     /// Получение списка изображений
     /// </summary>
-    public async Task GetPictureList()
+    public async Task<bool> GetPictureList()
     {
         await Get($"picture/list?{DeviceQuery}");
         Pictures = ReadResult<List<Picture>>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Открытие сессии регистрации (проверки) кодов маркировки на ККТ
     /// </summary>
-    public async Task OpenSessionRegistrationKM()
+    public async Task<bool> OpenSessionRegistrationKM()
     {
         await Post("marking/session/open", new CheckbaseParameters { DeviceName = DeviceName });
+        return Ok;
     }
 
     /// <summary>
     /// Закрытие сессии регистрации (проверки) кодов маркировки на ККТ
     /// </summary>
-    public async Task CloseSessionRegistrationKM()
+    public async Task<bool> CloseSessionRegistrationKM()
     {
         await Post("marking/session/close", new CheckbaseParameters { DeviceName = DeviceName });
+        return Ok;
     }
 
     /// <summary>
     /// Локальная проверка кода маркировки на ККТ (ФФД 1.2)
     /// </summary>
-    public async Task RequestKM()
+    public async Task<bool> RequestKM()
     {
         if (string.IsNullOrWhiteSpace(RequestKmGuid))
             RequestKmGuid = Guid.NewGuid().ToString();
@@ -704,23 +769,25 @@ public sealed partial class SkkmConnector
             }
         });
         MarkingCheck = ReadResult<RequestKmResult>();
+        return Ok;
     }
 
     /// <summary>
     /// Получение результата проверки кода маркировки в ОИСМ
     /// </summary>
-    public async Task GetProcessingKMResult()
+    public async Task<bool> GetProcessingKMResult()
     {
         await Get($"marking/km/result?{DeviceQuery}");
         MarkingProcessing = ReadResult<ProcessingKmResult>();
         if (!string.IsNullOrWhiteSpace(MarkingProcessing?.Guid))
             RequestKmGuid = MarkingProcessing!.Guid!;
+        return Ok;
     }
 
     /// <summary>
     /// Подтверждение, будет ли ранее проверенный код маркировки фактически включён в документ реализации. Действительно только в рамках открытой сессии регистрации
     /// </summary>
-    public async Task ConfirmKM()
+    public async Task<bool> ConfirmKM()
     {
         await Post("marking/km/confirm", new RequestConfirmKm
         {
@@ -728,240 +795,141 @@ public sealed partial class SkkmConnector
             GUID = RequestKmGuid,
             ConfirmationType = (int)ConfirmationType
         });
+        return Ok;
     }
 
     /// <summary>
     /// Печать нефискального документа.
     /// </summary>
-    public async Task PrintSlip()
+    public async Task<bool> PrintSlip()
     {
         await Post("slip", SlipBody());
         ApplyDocument(ReadResult<CheckDocument>());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронно поставить нефискальный документ в очередь печати
     /// </summary>
-    public async Task PrintSlipAsync()
+    public async Task<bool> PrintSlipAsync()
     {
         await Post("slip/async", SlipBody());
+        return Ok;
     }
 
     /// <summary>
     /// Версия сервера ККМ.
     /// </summary>
-    public async Task GetVersion()
+    public async Task<bool> GetVersion()
     {
         await Get("version");
-        if (LastResult.ValueKind == JsonValueKind.String)
-            ServerVersion = LastResult.GetString() ?? "";
+        if (Result.ValueKind == JsonValueKind.String)
+            ServerVersion = Result.GetString() ?? "";
+        else if (Result.ValueKind == JsonValueKind.Object && Result.TryGetProperty("ServerVersion", out var version))
+            ServerVersion = version.GetString() ?? "";
         else
-            ServerVersion = LastResult.ToString();
-    }
-
-    /// <summary>
-    /// Получение токена авторизации по логину и паролю.
-    /// Нужны <see cref="AuthUserName"/> и <see cref="AuthPassword"/> (по умолчанию Admin / Admin).
-    /// </summary>
-    public async Task GetUserToken()
-    {
-        if (string.IsNullOrWhiteSpace(AuthUserName) || string.IsNullOrWhiteSpace(AuthPassword))
-        {
-            Ok = false;
-            ErrorCode = -1;
-            ErrorDescription = "Укажите AuthUserName и AuthPassword для получения токена.";
-            return;
-        }
-
-        await Get("user/token", useBasicAuth: true);
-        UserToken = ReadResult<UserToken>();
-        if (!string.IsNullOrWhiteSpace(UserToken?.TokenId))
-            Token = UserToken.TokenId;
-    }
-
-    /// <summary>
-    /// Список пользователей сервера ККМ.
-    /// </summary>
-    public async Task GetUserList()
-    {
-        await Get("user/list");
-        Users = ReadResult<ServiceUser[]>() ?? [];
-    }
-
-    /// <summary>
-    /// Добавление пользователя.
-    /// </summary>
-    public async Task AddUser()
-    {
-        await Post("user", new UserProfileRequest { User = ServiceUser });
-    }
-
-    /// <summary>
-    /// Изменение пользователя.
-    /// </summary>
-    public async Task UpdateUser()
-    {
-        await Put($"user?id={Uri.EscapeDataString(UserId)}", ServiceUser);
-    }
-
-    /// <summary>
-    /// Удаление пользователя.
-    /// </summary>
-    public async Task DeleteUser()
-    {
-        await Delete($"user?id={Uri.EscapeDataString(UserId)}");
-    }
-
-    /// <summary>
-    /// Получение настроек службы печати.
-    /// </summary>
-    public async Task GetServiceSettings()
-    {
-        await Get("service/settings");
-        ServiceSettingsResult = ReadResult<ServiceSettings>();
-    }
-
-    /// <summary>
-    /// Сохранение настроек службы печати.
-    /// </summary>
-    public async Task SaveServiceSettings()
-    {
-        await Post("service/settings", new ServiceSettingsRequest { ServiceSettings = ServiceSettings });
-    }
-
-    /// <summary>
-    /// Добавление кассы на сервер.
-    /// </summary>
-    public async Task AddDevice()
-    {
-        var settings = DeviceSettings ?? new DeviceSettings();
-        settings.DeviceName = string.IsNullOrWhiteSpace(settings.DeviceName) ? DeviceName : settings.DeviceName;
-        await Post("kkt", new DeviceSettingsRequest { DeviceName = settings.DeviceName, Settings = settings });
-    }
-
-    /// <summary>
-    /// Изменение настроек кассы.
-    /// </summary>
-    public async Task UpdateDevice()
-    {
-        var settings = DeviceSettings ?? new DeviceSettings();
-        settings.DeviceName = string.IsNullOrWhiteSpace(settings.DeviceName) ? DeviceName : settings.DeviceName;
-        await Put("kkt", new DeviceSettingsRequest { DeviceName = settings.DeviceName, Settings = settings });
-    }
-
-    /// <summary>
-    /// Удаление кассы с сервера.
-    /// </summary>
-    public async Task DeleteDevice()
-    {
-        await Delete($"kkt?device={Uri.EscapeDataString(DeviceName)}");
+            ServerVersion = Result.ToString();
+        return Ok;
     }
 
     /// <summary>
     /// Перезагрузка кассы.
     /// </summary>
-    public async Task RebootDevice()
+    public async Task<bool> RebootDevice()
     {
         await Post("kkt/reboot", CheckBase());
-    }
-
-    /// <summary>
-    /// Настройка шрифтов шаблона кассы.
-    /// </summary>
-    public async Task SetDeviceFont()
-    {
-        var settings = DeviceSettings;
-        await Post("kkt/font/setting", new DeviceFontSettingsRequest
-        {
-            DeviceName = DeviceName,
-            TemplateSettingH1 = settings?.TemplateSettingH1,
-            TemplateSettingH2 = settings?.TemplateSettingH2,
-            TemplateSettingH3 = settings?.TemplateSettingH3,
-            TemplateSettingH4 = settings?.TemplateSettingH4,
-            TemplateSettingH5 = settings?.TemplateSettingH5
-        });
+        return Ok;
     }
 
     /// <summary>
     /// Список пулов устройств.
     /// </summary>
-    public async Task GetPoolList()
+    public async Task<bool> GetPoolList()
     {
         await Get("pool/list");
         Pools = ReadResult<string[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Список касс в пуле.
     /// </summary>
-    public async Task GetDeviceListByPool()
+    public async Task<bool> GetDeviceListByPool()
     {
         await Get($"kkt/list/byPool?pool={Uri.EscapeDataString(PoolName)}");
         Devices = ReadResult<DeviceListResponse[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронное открытие смены.
     /// </summary>
-    public async Task OpenShiftAsync()
+    public async Task<bool> OpenShiftAsync()
     {
         await Post("shift/open/async", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронное закрытие смены.
     /// </summary>
-    public async Task CloseShiftAsync()
+    public async Task<bool> CloseShiftAsync()
     {
         await Post("shift/z/async", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронный X-отчёт.
     /// </summary>
-    public async Task ReportXAsync()
+    public async Task<bool> ReportXAsync()
     {
         await Post("shift/x/async", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронный отчёт о состоянии расчётов.
     /// </summary>
-    public async Task ReportSettlementAsync()
+    public async Task<bool> ReportSettlementAsync()
     {
         await Post("report/settlement/async", CheckBase());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронное внесение наличных.
     /// </summary>
-    public async Task CashInAsync()
+    public async Task<bool> CashInAsync()
     {
         await Post("cashin/async", CashBody());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронная выемка наличных.
     /// </summary>
-    public async Task CashOutAsync()
+    public async Task<bool> CashOutAsync()
     {
         await Post("cashout/async", CashBody());
+        return Ok;
     }
 
     /// <summary>
     /// Список чеков за период и смену. Номер смены передаётся параметром, период (даты «с»/«по»)
     /// </summary>
-    public async Task GetCheckList(int shiftNumber)
+    public async Task<bool> GetCheckList(int shiftNumber)
     {
         ShiftNumber = shiftNumber;
         await Get($"check/list?{DeviceQuery}&{DateQuery(ShiftsFrom, ShiftsTo)}&shift={ShiftNumber}");
-        Checks = ReadResult<CheckDocument[]>() ?? [];
+        Checks = (ReadResult<CheckDocument[]>() ?? []).Select(x => new Check(x)).ToList();
+        return Ok;
     }
 
     /// <summary>
     /// Печать копии чека по данным фискального накопителя.
     /// </summary>
-    public async Task PrintCheckCopyFn()
+    public async Task<bool> PrintCheckCopyFn()
     {
         await Post("check/copy/fn", new CheckCopyFnParameters
         {
@@ -970,230 +938,254 @@ public sealed partial class SkkmConnector
             FiscalSign = FiscalSign,
             DocNumber = CheckNumber
         });
+        return Ok;
     }
 
     /// <summary>
     /// Получение слипа по идентификатору документа.
     /// </summary>
-    public async Task GetSlip(string documentId)
+    public async Task<bool> GetSlip(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("slip");
+        return Ok;
     }
 
     /// <summary>
     /// Список слипов по кассе.
     /// </summary>
-    public async Task GetSlipList()
+    public async Task<bool> GetSlipList()
     {
         await GetCheckList("slip/list");
+        return Ok;
     }
 
     /// <summary>
     /// Получение картинки по имени.
     /// </summary>
-    public async Task GetPicture(string pictureId)
+    public async Task<bool> GetPicture(string pictureId)
     {
         PictureId = pictureId;
         await Get($"picture?{DeviceQuery}&id={Uri.EscapeDataString(PictureId)}");
-        if (Ok && LastResult.ValueKind == JsonValueKind.String)
-            PictureBase64Result = LastResult.GetString() ?? "";
+        if (Ok && Result.ValueKind == JsonValueKind.String)
+            PictureBase64Result = Result.GetString() ?? "";
+        return Ok;
     }
 
     /// <summary>
     /// Удаление картинки.
     /// </summary>
-    public async Task DeletePicture()
+    public async Task<bool> DeletePicture()
     {
         await Delete($"picture?{DeviceQuery}&id={Uri.EscapeDataString(PictureId)}");
+        return Ok;
     }
 
     /// <summary>
     /// Создание шаблона печати.
     /// </summary>
-    public async Task AddTemplate()
+    public async Task<bool> AddTemplate()
     {
         if (!ValidateTemplate())
-            return;
+            return Ok;
         await Post("template", TemplateBody());
-        if (Ok && LastResult.ValueKind == JsonValueKind.String)
-            TemplateName = LastResult.GetString() ?? TemplateName;
+        if (Ok && Result.ValueKind == JsonValueKind.String)
+            TemplateName = Result.GetString() ?? TemplateName;
+        return Ok;
     }
 
     /// <summary>
     /// Изменение шаблона печати по его имени. Строки задаются так же, как при создании
     /// </summary>
-    public async Task UpdateTemplate()
+    public async Task<bool> UpdateTemplate()
     {
         if (!ValidateTemplate())
-            return;
+            return Ok;
         await Put("template", TemplateBody());
+        return Ok;
     }
 
     /// <summary>
     /// Удаление шаблона печати. Имя берётся из <see cref="TemplateName"/>.
     /// </summary>
-    public async Task DeleteTemplate()
+    public async Task<bool> DeleteTemplate()
     {
         if (!ValidateTemplateName(TemplateName, "шаблона печати"))
-            return;
+            return Ok;
         await Delete($"template?id={Uri.EscapeDataString(TemplateName)}");
+        return Ok;
     }
 
     /// <summary>
     /// Удаление шаблона печати по имени.
     /// </summary>
-    public async Task DeleteTemplate(string name)
+    public async Task<bool> DeleteTemplate(string name)
     {
         TemplateName = name;
         await DeleteTemplate();
+        return Ok;
     }
 
     /// <summary>
     /// Список имён шаблонов печати.
     /// </summary>
-    public async Task GetTemplateList()
+    public async Task<bool> GetTemplateList()
     {
         await Get("template/list");
         Templates = ReadResult<string[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Получение шаблона печати по имени. 
     /// </summary>
-    public async Task GetTemplate(string name)
+    public async Task<bool> GetTemplate(string name)
     {
         TemplateName = name;
         await Get($"template?name={Uri.EscapeDataString(TemplateName)}");
         ApplyTemplate(ReadResult<PrintTemplate>());
+        return Ok;
     }
 
     /// <summary>
     /// Создание шаблона чека.
     /// </summary>
-    public async Task AddCheckTemplate()
+    public async Task<bool> AddCheckTemplate()
     {
         if (!ValidateCheckTemplate(TemplateName))
-            return;
+            return Ok;
         await Post("checkTemplate", CheckTemplateBody(TemplateName));
+        return Ok;
     }
 
     /// <summary>
     /// Создание шаблона чека под указанным именем.
     /// </summary>
-    public async Task AddCheckTemplate(string name)
+    public async Task<bool> AddCheckTemplate(string name)
     {
         TemplateName = name;
         await AddCheckTemplate();
+        return Ok;
     }
 
     /// <summary>
     /// Изменение шаблона чека. Обязательно указываем имя шаблона
     /// </summary>
-    public async Task UpdateCheckTemplate()
+    public async Task<bool> UpdateCheckTemplate()
     {
         if (!ValidateCheckTemplate(TemplateName))
-            return;
+            return Ok;
         await Put("checkTemplate", CheckTemplateBody(TemplateName));
+        return Ok;
     }
 
     /// <summary>
     /// Изменение шаблона чека под указанным именем.
     /// </summary>
-    public async Task UpdateCheckTemplate(string name)
+    public async Task<bool> UpdateCheckTemplate(string name)
     {
         TemplateName = name;
         await UpdateCheckTemplate();
+        return Ok;
     }
 
     /// <summary>
     /// Удаление шаблона чека. Имя берётся из <see cref="TemplateName"/>.
     /// </summary>
-    public async Task DeleteCheckTemplate()
+    public async Task<bool> DeleteCheckTemplate()
     {
         if (!ValidateTemplateName(TemplateName, "шаблона чека"))
-            return;
+            return Ok;
         await Delete($"checkTemplate?id={Uri.EscapeDataString(TemplateName)}");
+        return Ok;
     }
 
     /// <summary>
     /// Удаление шаблона чека по имени.
     /// </summary>
-    public async Task DeleteCheckTemplate(string name)
+    public async Task<bool> DeleteCheckTemplate(string name)
     {
         TemplateName = name;
         await DeleteCheckTemplate();
+        return Ok;
     }
 
     /// <summary>
     /// Список шаблонов чека: имя шаблона и тип чека.
     /// </summary>
-    public async Task GetCheckTemplateList()
+    public async Task<bool> GetCheckTemplateList()
     {
         await Get("checkTemplate/list");
         CheckTemplates = ReadResult<CheckTemplateListItem[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Получение шаблона чека по имени
     /// </summary>
-    public async Task GetCheckTemplate(string name)
+    public async Task<bool> GetCheckTemplate(string name)
     {
         TemplateName = name;
         await Get($"checkTemplate?id={Uri.EscapeDataString(TemplateName)}");
         ApplyCheckTemplate(ReadResult<CheckTemplate>());
+        return Ok;
     }
 
     /// <summary>
     /// Состояние очереди печати.
     /// </summary>
-    public async Task GetQueue()
+    public async Task<bool> GetQueue()
     {
         await Get("queue");
         Queue = ReadResult<QueueItem[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Состояние задания в очереди.
     /// </summary>
-    public async Task GetQueueTask(string taskId)
+    public async Task<bool> GetQueueTask(string taskId)
     {
         QueueTaskId = taskId;
         await Get($"queue/task?taskId={Uri.EscapeDataString(QueueTaskId)}");
         QueueTask = ReadResult<QueueTaskState>();
+        return Ok;
     }
 
     /// <summary>
     /// История обработки задания в очереди.
     /// </summary>
-    public async Task GetQueueTaskHistory(string taskId)
+    public async Task<bool> GetQueueTaskHistory(string taskId)
     {
         QueueTaskId = taskId;
         await Get($"queue/task/history?taskId={Uri.EscapeDataString(QueueTaskId)}");
         QueueTask = ReadResult<QueueTaskState>();
         if (QueueTask != null)
             OperationHistory = QueueTask.History
-                .Select(h => new OperationHistoryItem
+                .Select(h => new OperationHistoryEntry(new OperationHistoryItem
                 {
                     Time = h.Time,
                     State = h.State,
-                    Description = h.Description
-                })
-                .ToArray();
+                    Description = h.Description,
+                    Info = h.Info
+                }))
+                .ToList();
+        return Ok;
     }
 
     /// <summary>
     /// Отмена задания в очереди.
     /// </summary>
-    public async Task CancelQueueTask()
+    public async Task<bool> CancelQueueTask()
     {
         await Delete($"queue/task?taskId={Uri.EscapeDataString(QueueTaskId)}");
+        return Ok;
     }
 
     /// <summary>
     /// Проверка кода маркировки через внешний сервис.
     /// </summary>
-    public async Task VerifyMarking()
+    public async Task<bool> VerifyMarking()
     {
         await Post("marking/km/verify", new MarkingCodesRequest
         {
@@ -1201,12 +1193,13 @@ public sealed partial class SkkmConnector
             Codes = MarkingCodes.ToList()
         });
         MarkingVerify = ReadResult<MarkingVerifyResult>();
+        return Ok;
     }
 
     /// <summary>
     /// Проверка кода маркировки через ТС ПИоТ.
     /// </summary>
-    public async Task VerifyMarkingTsPiot()
+    public async Task<bool> VerifyMarkingTsPiot()
     {
         await Post("marking/km/tspiot/verify", new MarkingCodesRequest
         {
@@ -1214,12 +1207,13 @@ public sealed partial class SkkmConnector
             Codes = MarkingCodes.ToList()
         });
         MarkingVerify = ReadResult<MarkingVerifyResult>();
+        return Ok;
     }
 
     /// <summary>
     /// Проверка кода маркировки через ЛМ ЧЗ.
     /// </summary>
-    public async Task VerifyMarkingLmcz()
+    public async Task<bool> VerifyMarkingLmcz()
     {
         await Post("marking/km/lmcz/verify", new MarkingCodesRequest
         {
@@ -1227,156 +1221,185 @@ public sealed partial class SkkmConnector
             Codes = MarkingCodes.ToList()
         });
         MarkingVerify = ReadResult<MarkingVerifyResult>();
+        return Ok;
     }
 
     /// <summary>
     /// Фискализация кассы.
     /// </summary>
-    public async Task Fiscalization()
+    public async Task<bool> Fiscalization()
     {
         await Post("fiscalization", FiscalizationBody());
+        return Ok;
     }
 
     /// <summary>
     /// Асинхронная фискализация кассы.
     /// </summary>
-    public async Task FiscalizationAsync()
+    public async Task<bool> FiscalizationAsync()
     {
         await Post("fiscalization/async", FiscalizationBody());
+        return Ok;
     }
 
     /// <summary>
     /// Результат фискализации по идентификатору документа.
     /// </summary>
-    public async Task GetFiscalization(string documentId)
+    public async Task<bool> GetFiscalization(string documentId)
     {
         DocumentId = documentId;
         await GetDocumentById("fiscalization");
         FiscalizationDocument = ReadResult<FiscalizationDocument>();
+        if (FiscalizationDocument != null)
+        {
+            if (!string.IsNullOrEmpty(FiscalizationDocument.DocId))
+                DocumentId = FiscalizationDocument.DocId;
+            if (!string.IsNullOrEmpty(FiscalizationDocument.FiscalSign))
+                FiscalSign = FiscalizationDocument.FiscalSign;
+            if (!string.IsNullOrEmpty(FiscalizationDocument.RnNumber))
+                RnNumber = FiscalizationDocument.RnNumber;
+            if (FiscalizationDocument.ShiftNumber > 0)
+                ShiftNumber = FiscalizationDocument.ShiftNumber;
+            if (FiscalizationDocument.DocNumber > 0)
+                CheckNumber = FiscalizationDocument.DocNumber;
+            IsFiscal = FiscalizationDocument.IsFiscal;
+        }
+        return Ok;
     }
 
     /// <summary>
     /// Список операций фискализации по кассе.
     /// </summary>
-    public async Task GetFiscalizationList()
+    public async Task<bool> GetFiscalizationList()
     {
         await Get($"fiscalization/list?{DeviceQuery}");
         Fiscalizations = ReadResult<FiscalizationDocument[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Последняя операция из базы. <c>tasktype</c> — <see cref="PaymentType"/> (<see cref="CheckType"/>), <c>isProcessed</c> — <see cref="IsProcessed"/>.
     /// </summary>
-    public async Task GetOperationLast()
+    public async Task<bool> GetOperationLast()
     {
         var processed = IsProcessed ? "true" : "false";
         await Get($"operation/last?tasktype={(int)PaymentType}&isProcessed={processed}");
         ApplyOperation(ReadResult<DeviceTaskInfo>());
+        return Ok;
     }
 
     /// <summary>
     /// Операция по идентификатору документа.
     /// </summary>
-    public async Task GetOperation(string documentId)
+    public async Task<bool> GetOperation(string documentId)
     {
         DocumentId = documentId;
         await Get($"operation?{DocIdQuery}");
         ApplyOperation(ReadResult<DeviceTaskInfo>());
+        return Ok;
     }
 
     /// <summary>
     /// История операции по идентификатору документа.
     /// </summary>
-    public async Task GetOperationHistory(string documentId)
+    public async Task<bool> GetOperationHistory(string documentId)
     {
         DocumentId = documentId;
         await Get($"operation/history?{DocIdQuery}");
-        OperationHistory = ReadResult<OperationHistoryItem[]>() ?? [];
+        OperationHistory = (ReadResult<OperationHistoryItem[]>() ?? [])
+            .Select(h => new OperationHistoryEntry(h))
+            .ToList();
+        return Ok;
     }
 
     /// <summary>
     /// TLV-данные операции.
     /// </summary>
-    public async Task GetOperationTlv(string documentId)
+    public async Task<bool> GetOperationTlv(string documentId)
     {
         DocumentId = documentId;
         await Get($"operation/tlv?{DocIdQuery}");
-        if (Ok && LastResult.ValueKind == JsonValueKind.String)
-            OperationTlv = LastResult.GetString() ?? "";
+        if (Ok && Result.ValueKind == JsonValueKind.String)
+            OperationTlv = Result.GetString() ?? "";
+        return Ok;
     }
 
     /// <summary>
     /// Данные маркировки операции.
     /// </summary>
-    public async Task GetOperationKm(string documentId)
+    public async Task<bool> GetOperationKm(string documentId)
     {
         DocumentId = documentId;
         await Get($"operation/km?{DocIdQuery}");
         OperationKm = ReadResult<OperationKmRow[]>() ?? [];
+        return Ok;
     }
 
     /// <summary>
     /// Связанные операции.
     /// </summary>
-    public async Task GetOperationRelated(string documentId)
+    public async Task<bool> GetOperationRelated(string documentId)
     {
         DocumentId = documentId;
         await Get($"operation/related?{DocIdQuery}");
-        RelatedOperations = ReadResult<DeviceTaskInfo[]>() ?? [];
+        RelatedOperations = (ReadResult<DeviceTaskInfo[]>() ?? []).Select(x => new RelatedOperation(x)).ToList();
+        return Ok;
     }
 
     /// <summary>
     /// Список операций за период.
     /// </summary>
-    public async Task GetOperationList()
+    public async Task<bool> GetOperationList()
     {
         await Get($"operation/list?{DateQuery(ShiftsFrom, ShiftsTo)}");
         Operations = ReadResult<OperationListItem[]>() ?? [];
+        return Ok;
     }
 
     private FiscalizationRequest FiscalizationBody()
     {
-        var source = FiscalizationParameters;
         var body = new FiscalizationRequest
         {
             DeviceName = DeviceName,
-            RnNumber = source?.RnNumber,
-            TaxationSystems = source?.TaxationSystems,
-            Vatin = source?.Vatin,
-            CompanyName = source?.CompanyName,
-            Fn = source?.Fn,
-            FfdVersionKkt = source?.FfdVersionKkt,
-            FfdVersionFn = source?.FfdVersionFn,
-            RegistrationLabelCodes = source?.RegistrationLabelCodes,
-            OfdAddress = source?.OfdAddress,
-            OfdPort = source?.OfdPort,
-            AutomaticNumber = source?.AutomaticNumber,
-            SenderEmail = source?.SenderEmail,
-            ReasonCode = source?.ReasonCode,
-            IsmHost = source?.IsmHost,
-            IsmPort = source?.IsmPort,
-            FnsUrl = source?.FnsUrl,
-            OfdVatin = source?.OfdVatin,
-            OfdName = source?.OfdName,
-            AgentTypes = source?.AgentTypes,
-            IsBsoSign = source?.IsBsoSign,
-            IsMarking = source?.IsMarking,
-            IsPawnshop = source?.IsPawnshop,
-            IsAssurance = source?.IsAssurance,
-            IsAutomatic = source?.IsAutomatic,
-            IsVending = source?.IsVending,
-            IsAutomaticPrinter = source?.IsAutomaticPrinter,
-            IsOnline = source?.IsOnline,
-            IsLottery = source?.IsLottery,
-            IsGambling = source?.IsGambling,
-            IsExcisable = source?.IsExcisable,
-            IsService = source?.IsService,
-            IsEncrypted = source?.IsEncrypted,
-            IsOffline = source?.IsOffline,
-            IsCateringServices = source?.IsCateringServices,
-            IsWholesaleTrade = source?.IsWholesaleTrade,
-            SaleAddress = source?.SaleAddress,
-            SaleLocation = source?.SaleLocation
+            RnNumber = FiscalizationRnNumber,
+            TaxationSystems = FiscalizationTaxationSystems is { Length: > 0 } sno
+                ? string.Join(",", sno.Select(s => (int)s))
+                : null,
+            Vatin = FiscalizationVatin,
+            CompanyName = FiscalizationCompanyName,
+            Fn = FiscalizationFn,
+            FfdVersionKkt = FiscalizationFfdVersionKkt,
+            FfdVersionFn = FiscalizationFfdVersionFn,
+            RegistrationLabelCodes = FiscalizationRegistrationLabelCodes,
+            OfdAddress = FiscalizationOfdAddress,
+            OfdPort = FiscalizationOfdPort,
+            AutomaticNumber = FiscalizationAutomaticNumber,
+            SenderEmail = FiscalizationSenderEmail,
+            ReasonCode = FiscalizationReasonCode,
+            IsmHost = FiscalizationIsmHost,
+            IsmPort = FiscalizationIsmPort,
+            FnsUrl = FiscalizationFnsUrl,
+            OfdVatin = FiscalizationOfdVatin,
+            OfdName = FiscalizationOfdName,
+            AgentTypes = FiscalizationAgentTypes is { Length: > 0 } agents
+                ? string.Join(",", agents.Select(a => (int)a))
+                : null,
+            IsBsoSign = FiscalizationIsBsoSign,
+            IsMarking = FiscalizationIsMarking,
+            IsPawnshop = FiscalizationIsPawnshop,
+            IsAssurance = FiscalizationIsAssurance,
+            IsAutomatic = FiscalizationIsAutomatic,
+            IsVending = FiscalizationIsVending,
+            IsAutomaticPrinter = FiscalizationIsAutomaticPrinter,
+            IsOnline = FiscalizationIsOnline,
+            IsLottery = FiscalizationIsLottery,
+            IsGambling = FiscalizationIsGambling,
+            IsExcisable = FiscalizationIsExcisable,
+            IsService = FiscalizationIsService,
+            IsEncrypted = FiscalizationIsEncrypted,
+            IsOffline = FiscalizationIsOffline,
+            IsCateringServices = FiscalizationIsCateringServices,
+            IsWholesaleTrade = FiscalizationIsWholesaleTrade
         };
         FillBase(body);
         return body;

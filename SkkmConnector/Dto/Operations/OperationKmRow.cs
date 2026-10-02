@@ -35,7 +35,7 @@ public sealed class OperationKmRow
     /// Статус проверки кода.
     /// </summary>
     [JsonPropertyName("CheckStatus")]
-    public int CheckStatus { get; set; }
+    public KmResultCheckStatus CheckStatus { get; set; }
 
     /// <summary>
     /// Наименование позиции чека.
@@ -71,11 +71,11 @@ public sealed class OperationKmRow
     /// Метод проверки кода маркировки.
     /// </summary>
     [JsonPropertyName("KmVerificationMethod")]
-    public int KmVerificationMethod { get; set; }
+    public KmVerificationMethod KmVerificationMethod { get; set; }
 
     /// <summary>
     /// Инициатор проверки кода маркировки.
     /// </summary>
     [JsonPropertyName("KmCheckInitiator")]
-    public int KmCheckInitiator { get; set; }
+    public KmCheckInitiator KmCheckInitiator { get; set; }
 }

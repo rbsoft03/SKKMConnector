@@ -16,14 +16,14 @@ public sealed class QueueTaskState
     public string DocId { get; set; } = "";
 
     /// <summary>
-    /// Код состояния документа.
+    /// Состояние документа в очереди печати.
     /// </summary>
-    public int DocState { get; set; }
+    public DocumentPrintState DocState { get; set; }
 
     /// <summary>
-    /// Код состояния очереди.
+    /// Состояние очереди печати.
     /// </summary>
-    public int QueueState { get; set; }
+    public QueueState QueueState { get; set; }
 
     /// <summary>
     /// Код результата.

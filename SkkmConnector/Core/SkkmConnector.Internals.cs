@@ -18,37 +18,140 @@ public sealed partial class SkkmConnector
 
     private KkmTransport Transport()
     {
-        _http.Host = Host;
-        _http.Port = Port;
-        _http.UseHttps = UseHttps;
+        var (host, port) = ParseAddress(Address);
+        _http.Host = host;
+        _http.Port = port;
         _http.Token = Token;
         _http.TerminalId = TerminalId;
-        _http.BasicAuthUser = AuthUserName;
-        _http.BasicAuthPassword = AuthPassword;
         _http.Timeout = Timeout;
         return _http;
     }
 
+    /// <summary>
+    /// Разбирает <see cref="Address"/> на хост и порт.
+    /// </summary>
+    private static (string Host, int Port) ParseAddress(string address)
+    {
+        const int defaultPort = 4398;
+        if (string.IsNullOrWhiteSpace(address))
+            return ("localhost", defaultPort);
+
+        var value = address.Trim();
+        var separator = value.LastIndexOf(':');
+        if (separator < 0)
+            return (value, defaultPort);
+
+        var host = value[..separator];
+        var portText = value[(separator + 1)..];
+        if (int.TryParse(portText, out var port) && port is >= 1 and <= 65535)
+            return (host.Length == 0 ? "localhost" : host, port);
+
+        return (value, defaultPort);
+    }
+
+    /// <summary>
+    /// Сбрасывает ВСЕ данные ответа (плоские поля и объекты), чтобы результат
+    /// каждого запроса отражал только сам себя и не оставался от предыдущего вызова.
+    /// Не трогает вход запроса (для него — <see cref="Clear"/>) и данные подключения.
+    /// </summary>
+    private void ResetResponse()
+    {
+        // Плоские скаляры ответа
+        FiscalResult = null;
+        FiscalSign = "";
+        FnNumber = "";
+        ShiftNumber = 0;
+        CheckNumber = 0;
+        CheckNumberInShift = 0;
+        RnNumber = "";
+        FnsUrl = "";
+        DocumentId = "";
+        ServerDateTime = "";
+        FiscalDateTime = "";
+        DeviceDateTime = "";
+        ComputerTime = default;
+        DeviceTime = default;
+        CurrentShiftState = null;
+        _backlog = null;
+        FnValidityDate = "";
+        FnDaysResources = 0;
+        IsFnPresent = false;
+        IsFiscal = false;
+        FnWarnings = null;
+        CashBalance = 0;
+        NonZeroSum = 0;
+        ShiftDocumentsCount = 0;
+        ShiftClosingCheckNumber = 0;
+        LineLength = 0;
+        LineLengthPixels = 0;
+        DeviceModel = "";
+        DeviceSerialNumber = "";
+        DeviceFirmwareVersion = "";
+        DeviceConfigurationVersion = "";
+        DeviceFfdVersion = "";
+        FnFfdVersion = "";
+        DeviceClass = default;
+        DeviceTimeZone = 0;
+
+        // Объекты ответа
+        Check = null;
+        Checks = [];
+        Shifts = [];
+        Status = null;
+        ShiftStatus = null;
+        ShiftTotals = null;
+        OverallTotals = null;
+        Kkt = null;
+        Devices = [];
+        Pictures = [];
+        PictureBase64Result = "";
+        TaskStatus = null;
+        PrintForm = [];
+        Pools = [];
+        Queue = [];
+        QueueTask = null;
+        Operation = null;
+        OperationHistory = [];
+        OperationTlv = "";
+        OperationKm = [];
+        RelatedOperations = [];
+        Operations = [];
+        PrintTemplate = null;
+        Templates = [];
+        CheckTemplate = null;
+        CheckTemplateDocument = null;
+        CheckTemplates = [];
+        FiscalizationDocument = null;
+        Fiscalizations = [];
+        MarkingCheck = null;
+        MarkingProcessing = null;
+        MarkingVerify = null;
+        ServerVersion = "";
+        ServerProduct = "";
+    }
+
     private void Apply<T>(ResponseResult<T> result)
     {
+        // Каждый ответ отражает только сам себя: стираем данные предыдущего запроса,
+        // чтобы поля/объекты ответа не «залипали» между разными вызовами.
+        ResetResponse();
+
         Ok = result.Success;
         ErrorCode = result.Code;
         ErrorDescription = result.Description ?? "";
-        LastResult = ToJsonElement(result.Result);
-        FiscalResult = null;
+        Result = ToJsonElement(result.Result);
 
-        FiscalSign = "";
-        if (LastResult.ValueKind == JsonValueKind.String)
+        if (Result.ValueKind == JsonValueKind.String)
         {
             DocumentId = "";
-            var id = LastResult.GetString();
+            var id = Result.GetString();
             if (Ok && !string.IsNullOrEmpty(id))
                 DocumentId = id!;
             return;
         }
 
-        ExtractFiscalResult(LastResult);
-        if (LooksLikeDocument(LastResult))
+        ExtractFiscalResult(Result);
+        if (LooksLikeDocument(Result))
             ApplyDocument(ReadResult<CheckDocument>());
     }
 
@@ -63,7 +166,6 @@ public sealed partial class SkkmConnector
 
     /// <summary>
     /// Разбор Result
-    /// заполняет <see cref="FiscalResult"/> и плоские свойства.
     /// Имена полей читаются без учёта регистра.
     /// </summary>
     private void ExtractFiscalResult(JsonElement result)
@@ -96,6 +198,7 @@ public sealed partial class SkkmConnector
             || fiscal.Backlog != null
             || fiscal.OutputParameters != null
             || fiscal.ShiftTotal != null
+            || fiscal.OverallTotals != null
             || fiscal.ShiftState.HasValue
             || !string.IsNullOrEmpty(fiscal.DateTime)
             || !string.IsNullOrEmpty(fiscal.FiscalDateTime)
@@ -145,9 +248,92 @@ public sealed partial class SkkmConnector
         else if (fiscal.CashSum.HasValue)
             CashBalance = fiscal.CashSum.Value;
 
+        if (fiscal.ShiftTotal != null)
+            ShiftTotals = fiscal.ShiftTotal;
+        if (fiscal.OverallTotals != null)
+            OverallTotals = fiscal.OverallTotals;
+
         ApplyBacklog(fiscal.Backlog);
         ApplyOutputParameters(fiscal.OutputParameters);
+        ApplyDeviceInfo(fiscal.DeviceInfo);
     }
+
+    /// <summary>
+    /// Раскладывает сведения об устройстве
+    /// </summary>
+    private void ApplyDeviceInfo(Device? device)
+    {
+        if (device == null)
+            return;
+
+        if (!string.IsNullOrEmpty(device.Model))
+            DeviceModel = device.Model!;
+        if (!string.IsNullOrEmpty(device.SerialNumber))
+            DeviceSerialNumber = device.SerialNumber!;
+        if (!string.IsNullOrEmpty(device.FirmwareVersion))
+            DeviceFirmwareVersion = device.FirmwareVersion!;
+        if (!string.IsNullOrEmpty(device.ConfigurationVersion))
+            DeviceConfigurationVersion = device.ConfigurationVersion!;
+        if (!string.IsNullOrEmpty(device.FfdVersion))
+            DeviceFfdVersion = device.FfdVersion!;
+        if (!string.IsNullOrEmpty(device.FnFfdVersion))
+            FnFfdVersion = device.FnFfdVersion!;
+        if (device.DeviceClass != default)
+            DeviceClass = device.DeviceClass;
+        if (device.TimeZone > 0)
+            DeviceTimeZone = device.TimeZone;
+        IsFiscal = device.IsFiscal;
+        if (device.LineLength > 0)
+            LineLength = device.LineLength;
+        if (device.LineLengthPixels > 0)
+            LineLengthPixels = device.LineLengthPixels;
+    }
+
+    /// <summary>
+    /// Раскладывает статус ККТ 
+    /// </summary>
+    private void ApplyStatus(KktStatus? status)
+    {
+        Status = status;
+        if (status == null)
+            return;
+
+        ShiftNumber = status.ShiftNumber;
+        CheckNumber = status.DocNumber;
+        CurrentShiftState = status.ShiftState;
+        ComputerTime = status.ComputerTime;
+        DeviceTime = status.DeviceTime;
+        LineLength = status.LineLength;
+        LineLengthPixels = status.LineLengthPixels;
+        IsFnPresent = status.IsFnPresent;
+        IsFiscal = status.IsFiscal;
+        FnWarnings = status.Warnings;
+        _backlog = status.Backlog;
+    }
+
+    /// <summary>
+    /// Раскладывает сведения о фискальном накопителе 
+    /// </summary>
+    private void ApplyFnInfo(Fn? fn)
+    {
+        if (fn == null)
+            return;
+
+        FnNumber = fn.SerialNumber ?? "";
+        RnNumber = fn.RnNumber ?? "";
+        FnsUrl = fn.FnsUrl ?? "";
+        FnWarnings ??= fn.Warnings;
+        if (string.IsNullOrEmpty(FnFfdVersion))
+            FnFfdVersion = fn.FfdVersion ?? "";
+        if (fn.ValidityDate != default)
+        {
+            FnValidityDate = fn.ValidityDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            FnDaysResources = DaysLeft(fn.ValidityDate);
+        }
+    }
+
+    private static int DaysLeft(DateTime validUntil)
+        => Math.Max(0, (validUntil.Date - DateTime.Today).Days);
 
     /// <summary>
     /// Дочитывает фискальные поля из JSON, если десериализация
@@ -222,7 +408,7 @@ public sealed partial class SkkmConnector
         return value.ValueKind switch
         {
             JsonValueKind.String => value.GetString(),
-            JsonValueKind.Null or JsonValueKind.Undefined => null,
+            JsonValueKind.Null or JsonValueKind.Undefined or JsonValueKind.Object or JsonValueKind.Array => null,
             _ => value.ToString()
         };
     }
@@ -252,18 +438,7 @@ public sealed partial class SkkmConnector
         if (backlog == null)
             return;
 
-        BacklogDocumentsCount = backlog.DocumentsCounter;
-        if (backlog.DocumentsCounter > 0)
-        {
-            BacklogFirstDocumentNumber = backlog.DocumentFirstNumber;
-            if (backlog.DocumentFirstDateTime != default)
-                BacklogFirstDocumentDateTime = backlog.DocumentFirstDateTime;
-        }
-        else
-        {
-            BacklogFirstDocumentNumber = 0;
-            BacklogFirstDocumentDateTime = null;
-        }
+        _backlog = backlog;
     }
 
     private void ApplyOutputParameters(FiscalOutputParameters? output)
@@ -271,8 +446,14 @@ public sealed partial class SkkmConnector
         if (output == null)
             return;
 
+        if (output.ShiftState.HasValue)
+            CurrentShiftState = output.ShiftState;
         if (output.NumberOfChecks > 0)
             CheckNumberInShift = output.NumberOfChecks;
+        if (output.NumberOfDocuments > 0)
+            ShiftDocumentsCount = output.NumberOfDocuments;
+        if (output.ShiftClosingCheckNumber > 0)
+            ShiftClosingCheckNumber = output.ShiftClosingCheckNumber;
         if (!string.IsNullOrEmpty(output.DateTime))
         {
             FiscalDateTime = output.DateTime!;
@@ -289,10 +470,7 @@ public sealed partial class SkkmConnector
             FnDaysResources = output.ResourcesFn;
         else if (!string.IsNullOrEmpty(FnValidityDate)
                  && DateTime.TryParse(FnValidityDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var validUntil))
-        {
-            var days = (validUntil.Date - DateTime.Today).Days;
-            FnDaysResources = days < 0 ? 0 : days;
-        }
+            FnDaysResources = DaysLeft(validUntil);
 
         ApplyBacklog(output.Backlog);
 
@@ -330,12 +508,12 @@ public sealed partial class SkkmConnector
 
     private T? ReadResult<T>()
     {
-        if (LastResult.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        if (Result.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
             return default;
 
         try
         {
-            return LastResult.Deserialize<T>(ResultJsonOptions);
+            return Result.Deserialize<T>(ResultJsonOptions);
         }
         catch (JsonException)
         {
@@ -356,6 +534,13 @@ public sealed partial class SkkmConnector
         if (document == null)
             return;
 
+        ApplyDeviceInfo(document.DeviceInfo);
+
+        if (document.ShiftTotal != null)
+            ShiftTotals = document.ShiftTotal;
+        if (document.OverallTotals != null)
+            OverallTotals = document.OverallTotals;
+
         var header = document.DocumentHeader;
         var fiscalSign = FirstNonEmpty(document.FiscalSign, header?.FiscalSign);
         var fn = FirstNonEmpty(document.Fn, header?.Fn);
@@ -375,7 +560,7 @@ public sealed partial class SkkmConnector
         if (document.CashSum.HasValue)
             CashBalance = document.CashSum.Value;
         if (document.Lines is { Length: > 0 })
-            PrintForm = document.Lines;
+            PrintForm = (document.Lines ?? []).Select(x => new PrintLine(x)).ToList();
         if (!string.IsNullOrEmpty(fn))
         {
             FnNumber = fn!;
@@ -410,6 +595,7 @@ public sealed partial class SkkmConnector
             Backlog = FiscalResult?.Backlog,
             OutputParameters = FiscalResult?.OutputParameters,
             ShiftTotal = FiscalResult?.ShiftTotal,
+            OverallTotals = FiscalResult?.OverallTotals,
             ShiftState = FiscalResult?.ShiftState
         };
         if (!string.IsNullOrEmpty(FiscalResult.DateTime))
@@ -449,12 +635,13 @@ public sealed partial class SkkmConnector
         cts.Dispose();
     }
 
-    private async Task Get(string path, bool useBasicAuth = false)
+    private async Task<bool> Get(string path)
     {
         var cts = BeginCall();
         try
         {
-            Apply(await Transport().Get(path, useBasicAuth, cts.Token));
+            Apply(await Transport().Get(path, cts.Token));
+            return Ok;
         }
         finally
         {
@@ -462,12 +649,13 @@ public sealed partial class SkkmConnector
         }
     }
 
-    private async Task Post(string path, object? body = null)
+    private async Task<bool> Post(string path, object? body = null)
     {
         var cts = BeginCall();
         try
         {
             Apply(await Transport().Post(path, body, cts.Token));
+            return Ok;
         }
         finally
         {
@@ -475,12 +663,13 @@ public sealed partial class SkkmConnector
         }
     }
 
-    private async Task Put(string path, object? body = null)
+    private async Task<bool> Put(string path, object? body = null)
     {
         var cts = BeginCall();
         try
         {
             Apply(await Transport().Put(path, body, cts.Token));
+            return Ok;
         }
         finally
         {
@@ -488,12 +677,13 @@ public sealed partial class SkkmConnector
         }
     }
 
-    private async Task Delete(string path)
+    private async Task<bool> Delete(string path)
     {
         var cts = BeginCall();
         try
         {
             Apply(await Transport().Delete(path, cts.Token));
+            return Ok;
         }
         finally
         {
@@ -511,30 +701,33 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// GET документа по <see cref="DocumentId"/>.
     /// </summary>
-    private async Task GetDocumentById(string path)
+    private async Task<bool> GetDocumentById(string path)
     {
         await Get($"{path}?{IdQuery}");
         ApplyDocument(ReadResult<CheckDocument>());
+        return Ok;
     }
 
     /// <summary>
     /// GET списка документов по кассе.
     /// </summary>
-    private async Task GetCheckList(string path)
+    private async Task<bool> GetCheckList(string path)
     {
         await Get($"{path}?{DeviceQuery}");
-        Checks = ReadResult<CheckDocument[]>() ?? [];
+        Checks = (ReadResult<CheckDocument[]>() ?? []).Select(x => new Check(x)).ToList();
+        return Ok;
     }
 
     /// <summary>
     /// GET списка отчётов за период <see cref="ShiftsFrom"/>..<see cref="ShiftsTo"/>.
     /// </summary>
-    private async Task GetReportList(string path, string? extraQuery = null)
+    private async Task<bool> GetReportList(string path, string? extraQuery = null)
     {
         var query = $"{DeviceQuery}&{DateQuery(ShiftsFrom, ShiftsTo)}";
         if (!string.IsNullOrWhiteSpace(extraQuery))
             query += $"&{extraQuery}";
         await Get($"{path}?{query}");
         Shifts = ReadResult<ShiftListItem[]>() ?? [];
+        return Ok;
     }
 }

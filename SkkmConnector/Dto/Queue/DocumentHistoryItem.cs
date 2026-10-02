@@ -11,9 +11,9 @@ public sealed class DocumentHistoryItem
     public DateTime Time { get; set; }
 
     /// <summary>
-    /// Код состояния.
+    /// Состояние документа в очереди печати.
     /// </summary>
-    public int State { get; set; }
+    public DocumentPrintState State { get; set; }
 
     /// <summary>
     /// Описание события.

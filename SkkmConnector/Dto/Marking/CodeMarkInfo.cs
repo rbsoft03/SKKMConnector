@@ -68,7 +68,7 @@ public sealed class CodeMarkInfo
     /// <summary>
     /// Код товара (GTIN).
     /// </summary>
-    public string Gtin { get; set; } = "";
+    public string GTIN { get; set; } = "";
 
     /// <summary>
     /// Тип упаковки.
@@ -104,4 +104,79 @@ public sealed class CodeMarkInfo
     /// Ёмкость КИГУ (количество потенциальных вложений).
     /// </summary>
     public int PackageQuantity { get; set; }
+
+    /// <summary>
+    /// Полный код DataMatrix.
+    /// </summary>
+    public string? DataMatrix { get; set; }
+
+    /// <summary>
+    /// Срок годности.
+    /// </summary>
+    public DateTime? ExpireDate { get; set; }
+
+    /// <summary>
+    /// Данные о сроках годности переменного веса.
+    /// </summary>
+    public object? VariableExpirations { get; set; }
+
+    /// <summary>
+    /// Дата производства.
+    /// </summary>
+    public DateTime? ProductionDate { get; set; }
+
+    /// <summary>
+    /// Вес продукции.
+    /// </summary>
+    public int? ProductWeight { get; set; }
+
+    /// <summary>
+    /// Идентификатор ветеринарного документа.
+    /// </summary>
+    public Guid? PrVetDocument { get; set; }
+
+    /// <summary>
+    /// Признак владельца кода.
+    /// </summary>
+    public bool? IsOwner { get; set; }
+
+    /// <summary>
+    /// Код сервиса проверки.
+    /// </summary>
+    public string? ServiceCode { get; set; }
+
+    /// <summary>
+    /// Максимальная розничная цена (МРЦ).
+    /// </summary>
+    public int? Mrp { get; set; }
+
+    /// <summary>
+    /// Сумма минимального расчёта (СМП).
+    /// </summary>
+    public int? Smp { get; set; }
+
+    /// <summary>
+    /// Количество вложенных единиц.
+    /// </summary>
+    public int? InnerUnitCount { get; set; }
+
+    /// <summary>
+    /// Количество проданных вложенных единиц.
+    /// </summary>
+    public int? SoldUnitCount { get; set; }
+
+    /// <summary>
+    /// Серийный номер производства.
+    /// </summary>
+    public string? ProductionSerialNumber { get; set; }
+
+    /// <summary>
+    /// Номер производственной партии.
+    /// </summary>
+    public string? ProductionBatchNumber { get; set; }
+
+    /// <summary>
+    /// Заводской серийный номер.
+    /// </summary>
+    public string? FactorySerialNumber { get; set; }
 }

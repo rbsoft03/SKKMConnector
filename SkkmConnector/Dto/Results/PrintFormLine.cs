@@ -5,7 +5,7 @@ namespace RBSoftSkkm;
 /// <summary>
 /// Строка печатной формы.
 /// </summary>
-public sealed class PrintFormLine
+public sealed class PrintFormLine : IPrintLine
 {
     /// <summary>
     /// Тип строки. Если не указано — Text.

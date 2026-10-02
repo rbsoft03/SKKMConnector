@@ -68,7 +68,7 @@ public class FiscalResult
     public int FiscalNumber { get; set; }
 
     /// <summary>
-    /// Состояние смены. Используйте enum <see cref="ShiftState"/>.
+    /// Состояние смены.
     /// </summary>
     [JsonPropertyName("ShiftState")]
     public ShiftState? ShiftState { get; set; }
@@ -102,4 +102,16 @@ public class FiscalResult
     /// </summary>
     [JsonPropertyName("shiftTotal")]
     public ResShiftTotal? ShiftTotal { get; set; }
+
+    /// <summary>
+    /// Необнуляемые итоги за всё время работы (X- и Z-отчёт).
+    /// </summary>
+    [JsonPropertyName("overallTotals")]
+    public OverallTotals? OverallTotals { get; set; }
+
+    /// <summary>
+    /// Сведения об устройстве из фискального ответа.
+    /// </summary>
+    [JsonPropertyName("deviceInfo")]
+    public Device? DeviceInfo { get; set; }
 }

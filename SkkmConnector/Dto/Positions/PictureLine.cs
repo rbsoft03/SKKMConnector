@@ -8,7 +8,7 @@ namespace RBSoftSkkm;
 /// Value - Картинка в Base64
 /// </para>
 /// <para>
-/// Alignment - Выравнивание. Используйте enum <see cref="PictureAlignment"/>
+/// Alignment - Выравнивание.
 /// </para>
 /// <para>
 /// Width / Height - Размер (при необходимости)
@@ -22,16 +22,16 @@ public sealed class PictureLine : Position
     public string Value { get; set; } = "";
 
     /// <summary>
-    /// Выравнивание изображения. Используйте enum <see cref="PictureAlignment"/>.
+    /// Выравнивание изображения.
     /// </summary>
     [JsonIgnore]
     public PictureAlignment Alignment { get; set; } = PictureAlignment.Center;
 
     /// <summary>
-    /// Выравнивание в нумерации позиций чека: 0 — слева, 1 — по центру, 2 — справа.
+    /// Выравнивание изображения в формате Сервера ККМ: 1 — слева, 2 — по центру, 3 — справа.
     /// </summary>
     [JsonPropertyName("Alignment")]
-    public int AlignmentValue => (int)Alignment - 1;
+    public int AlignmentValue => (int)Alignment;
 
     /// <summary>
     /// Ширина изображения.

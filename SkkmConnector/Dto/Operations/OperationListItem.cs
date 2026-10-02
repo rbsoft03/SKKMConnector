@@ -62,10 +62,10 @@ public sealed class OperationListItem
     public DateTime UpdateAt { get; set; }
 
     /// <summary>
-    /// Тип задания.
+    /// Тип задания (<see cref="CheckType"/>).
     /// </summary>
     [JsonPropertyName("TaskType")]
-    public int TaskType { get; set; }
+    public CheckType TaskType { get; set; }
 
     /// <summary>
     /// Наименование типа задания.

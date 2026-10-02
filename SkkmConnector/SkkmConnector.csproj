@@ -8,7 +8,7 @@
     <RootNamespace>RBSoftSkkm</RootNamespace>
     <IsPackable>true</IsPackable>
     <PackageId>SkkmConnector</PackageId>
-    <Version>1.28.10</Version>
+    <Version>1.30.13</Version>
     <Authors>rbsoft</Authors>
     <Company>rbsoft</Company>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

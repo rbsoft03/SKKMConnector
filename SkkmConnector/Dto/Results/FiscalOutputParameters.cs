@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace RBSoftSkkm;
@@ -12,6 +13,24 @@ public sealed class FiscalOutputParameters
     /// </summary>
     [JsonPropertyName("NumberOfChecks")]
     public int NumberOfChecks { get; set; }
+
+    /// <summary>
+    /// Количество документов в смене.
+    /// </summary>
+    [JsonPropertyName("NumberOfDocuments")]
+    public int NumberOfDocuments { get; set; }
+
+    /// <summary>
+    /// Номер чека закрытия смены.
+    /// </summary>
+    [JsonPropertyName("ShiftClosingCheckNumber")]
+    public int ShiftClosingCheckNumber { get; set; }
+
+    /// <summary>
+    /// Состояние смены.
+    /// </summary>
+    [JsonPropertyName("ShiftState")]
+    public ShiftState? ShiftState { get; set; }
 
     /// <summary>
     /// Дата и время ККТ.
@@ -60,4 +79,22 @@ public sealed class FiscalOutputParameters
     /// </summary>
     [JsonPropertyName("ResourcesFn")]
     public int ResourcesFn { get; set; }
+
+    /// <summary>
+    /// Предупреждения ФН (так поле называется в сохранённых документах: GET shift/open, shift/x, shift/z, report/settlement).
+    /// </summary>
+    [JsonPropertyName("Warnings")]
+    public Warnings? Warnings { get; set; }
+
+    /// <summary>
+    /// Количество непереданных в ОФД документов.
+    /// </summary>
+    [JsonPropertyName("DocumentsCounter")]
+    public long DocumentsCounter { get; set; }
+
+    /// <summary>
+    /// Показатели отделов за смену.
+    /// </summary>
+    [JsonPropertyName("DepartmentTotals")]
+    public JsonElement[]? DepartmentTotals { get; set; }
 }

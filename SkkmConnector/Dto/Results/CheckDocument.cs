@@ -20,6 +20,12 @@ public sealed class CheckDocument
     public bool TrustedInFn { get; set; }
 
     /// <summary>
+    /// Признак замены ставки НДС (замещение налога).
+    /// </summary>
+    [JsonPropertyName("IsReplaceTax")]
+    public bool IsReplaceTax { get; set; }
+
+    /// <summary>
     /// Фискальный документ.
     /// </summary>
     [JsonPropertyName("IsFiscal")]
@@ -194,10 +200,10 @@ public sealed class CheckDocument
     public string? Tlv { get; set; }
 
     /// <summary>
-    /// Тип чека
+    /// Тип чека (<see cref="CheckType"/>).
     /// </summary>
     [JsonPropertyName("TaskType")]
-    public int TaskType { get; set; }
+    public CheckType TaskType { get; set; }
 
     /// <summary>
     /// Идентификатор документа.
@@ -206,10 +212,10 @@ public sealed class CheckDocument
     public string? DocId { get; set; }
 
     /// <summary>
-    /// Дата создания документа.
+    /// Дата создания документа (с сохранением часового пояса сервера).
     /// </summary>
     [JsonPropertyName("Date")]
-    public DateTime Date { get; set; }
+    public DateTimeOffset Date { get; set; }
 
     /// <summary>
     /// Идентификатор терминала, с которого пришёл документ.
@@ -264,6 +270,42 @@ public sealed class CheckDocument
     /// </summary>
     [JsonPropertyName("ShiftTotal")]
     public ResShiftTotal? ShiftTotal { get; set; }
+
+    /// <summary>
+    /// Необнуляемые итоги за всё время работы (X/Z-отчёт).
+    /// </summary>
+    [JsonPropertyName("OverallTotals")]
+    public OverallTotals? OverallTotals { get; set; }
+
+    /// <summary>
+    /// Состояние обмена с ОФД (открытие смены, X/Z-отчёт).
+    /// </summary>
+    [JsonPropertyName("OfdStatus")]
+    public OfdStatus? OfdStatus { get; set; }
+
+    /// <summary>
+    /// Выходные параметры документа (открытие смены, X/Z-отчёт, отчёт о расчётах).
+    /// </summary>
+    [JsonPropertyName("OutputParameters")]
+    public FiscalOutputParameters? OutputParameters { get; set; }
+
+    /// <summary>
+    /// Адрес электронной почты отправителя чека.
+    /// </summary>
+    [JsonPropertyName("SenderEmail")]
+    public string? SenderEmail { get; set; }
+
+    /// <summary>
+    /// Строки заголовка документа.
+    /// </summary>
+    [JsonPropertyName("Before")]
+    public PrintFormLine[]? Before { get; set; }
+
+    /// <summary>
+    /// Строки подвала документа.
+    /// </summary>
+    [JsonPropertyName("After")]
+    public PrintFormLine[]? After { get; set; }
 
     /// <summary>
     /// Количество аннулирований (X/Z-отчёт).

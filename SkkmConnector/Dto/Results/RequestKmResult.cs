@@ -36,5 +36,17 @@ namespace RBSoftSkkm
         /// </summary>
         [JsonPropertyName("Barcode")]
         public string? Barcode { get; set; }
+
+        /// <summary>
+        /// Код ошибки (0 — проверка проведена успешно).
+        /// </summary>
+        [JsonPropertyName("Code")]
+        public int Code { get; set; }
+
+        /// <summary>
+        /// Описание результата.
+        /// </summary>
+        [JsonPropertyName("Description")]
+        public string? Description { get; set; }
     }
 }

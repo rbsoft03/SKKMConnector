@@ -10,10 +10,7 @@ public sealed partial class SkkmConnector
     private const int ValidationErrorCode = -1;
 
     /// <summary>
-    /// Проверка обязательных полей чека перед отправкой: имя кассы, наличие хотя бы одной
-    /// фискальной строки и заполненность её ключевых полей (наименование, ставка НДС, количество).
-    /// Если что-то не заполнено — чек не отправляется, а причина кладётся в
-    /// <see cref="Ok"/> = false и <see cref="ErrorDescription"/>.
+    /// Проверка обязательных полей чека перед отправкой
     /// </summary>
     private bool ValidateCheck()
     {
@@ -22,6 +19,41 @@ public sealed partial class SkkmConnector
 
         return ValidatePositions();
     }
+
+    /// <summary>
+    /// Проверка перед отправкой чека коррекции ФФД 1.2: имя кассы, тип чека коррекции и товарная часть.
+    /// </summary>
+    private bool ValidateCorrection120()
+    {
+        if (string.IsNullOrWhiteSpace(DeviceName))
+            return FailValidation("Не указано имя кассы.");
+        if (!IsCorrectionType(PaymentType))
+            return FailValidation($"Тип операции {PaymentType} не является чеком коррекции. Ожидается CorrectionSale, CorrectionSaleReturn, CorrectionPurchase или CorrectionPurchaseReturn.");
+
+        return ValidatePositions();
+    }
+
+    /// <summary>
+    /// Проверка перед отправкой чека коррекции ФФД 1.0.5: имя кассы и тип чека коррекции (позиции не передаются).
+    /// </summary>
+    private bool ValidateCorrection105()
+    {
+        if (string.IsNullOrWhiteSpace(DeviceName))
+            return FailValidation("Не указано имя кассы.");
+        if (!IsCorrectionType(PaymentType))
+            return FailValidation($"Тип операции {PaymentType} не является чеком коррекции. Ожидается CorrectionSale, CorrectionSaleReturn, CorrectionPurchase или CorrectionPurchaseReturn.");
+
+        return true;
+    }
+
+    /// <summary>
+    /// Тип чека является чеком коррекции: приход, возврат прихода, расход или возврат расхода.
+    /// </summary>
+    private static bool IsCorrectionType(CheckType type)
+        => type is CheckType.CorrectionSale
+            or CheckType.CorrectionSaleReturn
+            or CheckType.CorrectionPurchase
+            or CheckType.CorrectionPurchaseReturn;
 
     /// <summary>
     /// Проверка товарной части: в документе должна быть хотя бы одна фискальная строка
@@ -96,9 +128,52 @@ public sealed partial class SkkmConnector
         Ok = false;
         ErrorCode = ValidationErrorCode;
         ErrorDescription = message;
-        LastResult = default;
+        Result = default;
         FiscalResult = null;
         return false;
+    }
+
+    /// <summary>
+    /// Читает файл изображения, проверяет формат (BMP или PNG) и кодирует его в Base64
+    /// Имя картинки берётся из имени файла, если не задано.
+    /// Возвращает false и заполняет ошибку, если файл не найден, не читается или не является BMP/PNG.
+    /// </summary>
+    private bool LoadPicture(string filePath, out string base64)
+    {
+        base64 = "";
+
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            return FailValidation($"Файл изображения не найден: «{filePath}».");
+
+        byte[] bytes;
+        try
+        {
+            bytes = File.ReadAllBytes(filePath);
+        }
+        catch (Exception ex)
+        {
+            return FailValidation($"Не удалось прочитать файл изображения: {ex.Message}");
+        }
+
+        if (!IsPngOrBmp(bytes))
+            return FailValidation("Файл не является изображением BMP или PNG.");
+
+        base64 = Convert.ToBase64String(bytes);
+        return true;
+    }
+
+    /// <summary>
+    /// Проверяет по сигнатуре файла, что это PNG или BMP
+    /// </summary>
+    private static bool IsPngOrBmp(byte[] bytes)
+    {
+        // BMP: "BM"
+        if (bytes.Length >= 2 && bytes[0] == 0x42 && bytes[1] == 0x4D)
+            return true;
+
+        return bytes.Length >= 8
+            && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47
+            && bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A;
     }
 
     /// <summary>
@@ -163,24 +238,69 @@ public sealed partial class SkkmConnector
     /// </summary>
     private Agent? BuildAgent()
     {
-        if (string.IsNullOrEmpty(AgentPayingAgentOperation)
-            && (AgentPayingAgentPhone == null || AgentPayingAgentPhone.Length == 0)
-            && (AgentReceivePaymentsOperatorPhone == null || AgentReceivePaymentsOperatorPhone.Length == 0)
-            && (AgentMoneyTransferOperatorPhone == null || AgentMoneyTransferOperatorPhone.Length == 0)
-            && string.IsNullOrEmpty(AgentMoneyTransferOperatorName)
-            && string.IsNullOrEmpty(AgentMoneyTransferOperatorAddress)
-            && string.IsNullOrEmpty(AgentMoneyTransferOperatorVatin))
+        if (string.IsNullOrEmpty(PayingAgentOperation)
+            && (PayingAgentPhone == null || PayingAgentPhone.Length == 0)
+            && (ReceivePaymentsOperatorPhone == null || ReceivePaymentsOperatorPhone.Length == 0)
+            && (MoneyTransferOperatorPhone == null || MoneyTransferOperatorPhone.Length == 0)
+            && string.IsNullOrEmpty(MoneyTransferOperatorName)
+            && string.IsNullOrEmpty(MoneyTransferOperatorAddress)
+            && string.IsNullOrEmpty(MoneyTransferOperatorVatin))
             return null;
 
         return new Agent
         {
-            PayingAgentOperation = AgentPayingAgentOperation,
-            PayingAgentPhone = AgentPayingAgentPhone,
-            ReceivePaymentsOperatorPhone = AgentReceivePaymentsOperatorPhone,
-            MoneyTransferOperatorPhone = AgentMoneyTransferOperatorPhone,
-            MoneyTransferOperatorName = AgentMoneyTransferOperatorName,
-            MoneyTransferOperatorAddress = AgentMoneyTransferOperatorAddress,
-            MoneyTransferOperatorVatin = AgentMoneyTransferOperatorVatin
+            PayingAgentOperation = PayingAgentOperation,
+            PayingAgentPhone = PayingAgentPhone,
+            ReceivePaymentsOperatorPhone = ReceivePaymentsOperatorPhone,
+            MoneyTransferOperatorPhone = MoneyTransferOperatorPhone,
+            MoneyTransferOperatorName = MoneyTransferOperatorName,
+            MoneyTransferOperatorAddress = MoneyTransferOperatorAddress,
+            MoneyTransferOperatorVatin = MoneyTransferOperatorVatin
+        };
+    }
+
+    /// <summary>
+    /// Суммы оплаты чека из плоских полей Cash / ElectronicPayment / AdvancePayment / Credit / CashProvision.
+    /// Если все суммы нулевые — оплаты не отправляются.
+    /// </summary>
+    private Payments? BuildPayments()
+    {
+        if (Cash == 0 && ElectronicPayment == 0 && AdvancePayment == 0 && Credit == 0 && CashProvision == 0)
+            return null;
+
+        return new Payments
+        {
+            Cash = Cash,
+            ElectronicPayment = ElectronicPayment,
+            AdvancePayment = AdvancePayment,
+            Credit = Credit,
+            CashProvision = CashProvision
+        };
+    }
+
+    /// <summary>
+    /// Детализация безналичной оплаты (wire ElectronicPaymentInfo) из плоских полей.
+    /// Одна оплата на чек; если сумма 0 и остальные поля пусты — детализация не отправляется.
+    /// </summary>
+    private List<ElectronicPayment>? BuildElectronicPaymentInfo()
+    {
+        if (ElectronicPayments.Count > 0)
+            return ElectronicPayments;
+
+        if (ElectronicPaymentAmount == 0
+            && string.IsNullOrEmpty(ElectronicPaymentIdentifiers)
+            && string.IsNullOrEmpty(ElectronicPaymentAdditionalInformation))
+            return null;
+
+        return new List<ElectronicPayment>
+        {
+            new ElectronicPayment
+            {
+                Amount = ElectronicPaymentAmount,
+                PaymentMethod = ElectronicPaymentMethod,
+                Identifiers = string.IsNullOrEmpty(ElectronicPaymentIdentifiers) ? null : ElectronicPaymentIdentifiers,
+                AdditionalInformation = string.IsNullOrEmpty(ElectronicPaymentAdditionalInformation) ? null : ElectronicPaymentAdditionalInformation
+            }
         };
     }
 
@@ -210,16 +330,16 @@ public sealed partial class SkkmConnector
     private Industry? BuildIndustry()
     {
         if (string.IsNullOrEmpty(IndustryIdentifierFoiv)
-            && string.IsNullOrEmpty(IndustryDocumentDate)
-            && string.IsNullOrEmpty(IndustryDocumentNumber)
+            && string.IsNullOrEmpty(IndustryAttributeDocumentDate)
+            && string.IsNullOrEmpty(IndustryAttributeDocumentNumber)
             && string.IsNullOrEmpty(IndustryAttributeValue))
             return null;
 
         return new Industry
         {
             IdentifierFoiv = IndustryIdentifierFoiv,
-            DocumentDate = IndustryDocumentDate,
-            DocumentNumber = IndustryDocumentNumber,
+            DocumentDate = IndustryAttributeDocumentDate,
+            DocumentNumber = IndustryAttributeDocumentNumber,
             AttributeValue = IndustryAttributeValue
         };
     }
@@ -319,16 +439,16 @@ public sealed partial class SkkmConnector
         check.AgentData = BuildAgent();
         check.Vendor = BuildVendor();
         check.Positions = BuildPositions();
-        check.Payments = Payments;
-        check.ElectronicPaymentInfo = ElectronicPayments.Count == 0 ? null : ElectronicPayments;
+        check.Payments = BuildPayments();
+        check.ElectronicPaymentInfo = BuildElectronicPaymentInfo();
         check.TextBefore = TextBefore;
         check.TextAfter = TextAfter;
-        check.Electronically = Electronically;
+        check.Electronically = IsElectronically;
         check.OperationalAttribute = BuildOperationalAttribute();
         check.IndustryAttribute = BuildIndustry();
         check.UserAttribute = BuildUserAttribute();
         check.TimeZone = TimeZone.HasValue ? (int)TimeZone.Value : null;
-        check.OperationOnline = OperationOnline ? true : null;
+        check.OperationOnline = IsOperationOnline ? true : null;
         check.AdditionalAttribute = AdditionalAttribute;
     }
 
@@ -337,27 +457,26 @@ public sealed partial class SkkmConnector
     /// </summary>
     private Correction105Parameters Correction105Body()
     {
-        var taxes = Correction105Taxes;
         var check = new Correction105Parameters
         {
             CorrectionData = BuildCorrection(),
             PaymentType = (int)PaymentType,
             TaxVariant = (int)TaxVariant,
-            Payments = Payments,
-            SumTaxNone = taxes?.SumTaxNone,
-            SumTax0 = taxes?.SumTax0,
-            SumTax5 = taxes?.SumTax5,
-            SumTax7 = taxes?.SumTax7,
-            SumTax10 = taxes?.SumTax10,
-            SumTax105 = taxes?.SumTax105,
-            SumTax107 = taxes?.SumTax107,
-            SumTax110 = taxes?.SumTax110,
-            SumTax118 = taxes?.SumTax118,
-            SumTax18 = taxes?.SumTax18,
-            SumTax20 = taxes?.SumTax20,
-            SumTax120 = taxes?.SumTax120,
-            SumTax22 = taxes?.SumTax22,
-            SumTax122 = taxes?.SumTax122,
+            Payments = BuildPayments(),
+            SumTaxNone = CorrectionSumTaxNone,
+            SumTax0 = CorrectionSumTax0,
+            SumTax5 = CorrectionSumTax5,
+            SumTax7 = CorrectionSumTax7,
+            SumTax10 = CorrectionSumTax10,
+            SumTax105 = CorrectionSumTax105,
+            SumTax107 = CorrectionSumTax107,
+            SumTax110 = CorrectionSumTax110,
+            SumTax118 = CorrectionSumTax118,
+            SumTax18 = CorrectionSumTax18,
+            SumTax20 = CorrectionSumTax20,
+            SumTax120 = CorrectionSumTax120,
+            SumTax22 = CorrectionSumTax22,
+            SumTax122 = CorrectionSumTax122,
             AdditionalAttribute = AdditionalAttribute
         };
         FillBase(check);
@@ -400,7 +519,7 @@ public sealed partial class SkkmConnector
             Name = TemplateName,
             Type = (int)TemplateType,
             TemplateItems = BuildPrintLines(_positions)
-                .Select(line => new TemplateItem { PrintLine = line })
+                .Select(line => new TemplateItem { PrintTemplateLine = line })
                 .ToArray()
         };
     }
@@ -488,9 +607,9 @@ public sealed partial class SkkmConnector
     /// <summary>
     /// Позиции чека в строки печатного шаблона (фискальные строки пропускаются).
     /// </summary>
-    private static List<PrintLine> BuildPrintLines(IEnumerable<Position> positions)
+    private static List<PrintTemplateLine> BuildPrintLines(IEnumerable<Position> positions)
     {
-        var lines = new List<PrintLine>();
+        var lines = new List<PrintTemplateLine>();
         foreach (var position in positions)
         {
             var line = ToPrintLine(position);
@@ -500,9 +619,9 @@ public sealed partial class SkkmConnector
         return lines;
     }
 
-    private static PrintLine? ToPrintLine(Position position) => position switch
+    private static PrintTemplateLine? ToPrintLine(Position position) => position switch
     {
-        TextLine text => new PrintLine
+        TextLine text => new PrintTemplateLine
         {
             Type = PrintLineType.Text,
             Line = text.Text,
@@ -511,12 +630,12 @@ public sealed partial class SkkmConnector
             Alignment = text.Alignment ?? PrintAlignment.Left,
             Wrap = text.Wrap
         },
-        SeparatorLine separator => new PrintLine
+        SeparatorLine separator => new PrintTemplateLine
         {
             Type = PrintLineType.Separator,
             SeparatorLine = separator
         },
-        BarcodeLine barcode => new PrintLine
+        BarcodeLine barcode => new PrintTemplateLine
         {
             Type = PrintLineType.Barcode,
             Alignment = barcode.Alignment ?? PrintAlignment.Center,
@@ -529,9 +648,17 @@ public sealed partial class SkkmConnector
                 PrintText = barcode.PrintText
             }
         },
-        PictureLine picture => new PrintLine
+        PictureLine picture => new PrintTemplateLine
         {
             Type = PrintLineType.Picture,
+            // Выравнивание дублируем на уровне строки: печать и предпросмотр
+            // позиционируют картинку по PrintTemplateLine.Alignment, а не по Picture.Alignment.
+            Alignment = picture.Alignment switch
+            {
+                PictureAlignment.Left => PrintAlignment.Left,
+                PictureAlignment.Right => PrintAlignment.Right,
+                _ => PrintAlignment.Center
+            },
             Picture = new Picture
             {
                 PictureBase64 = picture.Value,
@@ -543,7 +670,7 @@ public sealed partial class SkkmConnector
         _ => null
     };
 
-    private void RestorePositionsFromPrintLines(IEnumerable<PrintLine> lines)
+    private void RestorePositionsFromPrintLines(IEnumerable<PrintTemplateLine> lines)
     {
         _positions.Clear();
         foreach (var line in lines)
@@ -563,7 +690,7 @@ public sealed partial class SkkmConnector
                         line.Barcode.PrintText);
                     break;
                 case PrintLineType.Picture when line.Picture != null:
-                    AddPicture(
+                    AddPictureBase64(
                         line.Picture.PictureBase64 ?? "",
                         line.Picture.Alignment,
                         line.Picture.Width ?? 0,
@@ -583,22 +710,19 @@ public sealed partial class SkkmConnector
     {
         PaymentType = document.PaymentType;
         TaxVariant = document.TaxVariant;
-        Electronically = document.Electronically;
-        OperationOnline = document.OperationOnline;
+        IsElectronically = document.Electronically;
+        IsOperationOnline = document.OperationOnline;
         TimeZone = document.TimeZone;
         if (!string.IsNullOrEmpty(document.AdditionalAttribute))
             AdditionalAttribute = document.AdditionalAttribute!;
 
         if (document.Payments != null)
         {
-            Payments = new Payments
-            {
-                Cash = document.Payments.Cash,
-                ElectronicPayment = document.Payments.Electronic,
-                AdvancePayment = document.Payments.PrePaid,
-                Credit = document.Payments.Credit,
-                CashProvision = document.Payments.Barter
-            };
+            Cash = document.Payments.Cash;
+            ElectronicPayment = document.Payments.Electronic;
+            AdvancePayment = document.Payments.PrePaid;
+            Credit = document.Payments.Credit;
+            CashProvision = document.Payments.Barter;
         }
 
         if (document.CorrectionData != null)

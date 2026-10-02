@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -31,15 +30,12 @@ namespace RBSoftSkkm.Internal
 
         public string Host { get; set; } = "localhost";
         public int Port { get; set; } = 4398;
-        public bool UseHttps { get; set; }
         public string? Token { get; set; }
         public string? TerminalId { get; set; }
-        public string? BasicAuthUser { get; set; }
-        public string? BasicAuthPassword { get; set; }
         public TimeSpan Timeout { get; set; } = DefaultTimeout;
 
-        internal Task<ResponseResult<JsonElement>> Get(string path, bool useBasicAuth = false, CancellationToken cancellationToken = default)
-            => SendAsync(HttpMethod.Get, path, body: null, useBasicAuth, cancellationToken);
+        internal Task<ResponseResult<JsonElement>> Get(string path, CancellationToken cancellationToken = default)
+            => SendAsync(HttpMethod.Get, path, body: null, cancellationToken);
 
         internal Task<ResponseResult<JsonElement>> Post(string path, object? body = null, CancellationToken cancellationToken = default)
             => SendAsync(HttpMethod.Post, path, body, cancellationToken: cancellationToken);
@@ -62,7 +58,6 @@ namespace RBSoftSkkm.Internal
             HttpMethod method,
             string relativeUrl,
             object? body,
-            bool useBasicAuth = false,
             CancellationToken cancellationToken = default)
         {
             if (_disposed)
@@ -71,10 +66,7 @@ namespace RBSoftSkkm.Internal
                 return FailResult(-1, "Укажите Host и Port сервера ККМ.");
 
             using var request = new HttpRequestMessage(method, RequestUri(relativeUrl));
-            if (useBasicAuth)
-                AddBasicAuth(request);
-            else
-                AddApiKey(request);
+            AddApiKey(request);
 
             if (body != null && method != HttpMethod.Get && method != HttpMethod.Delete)
             {
@@ -129,7 +121,7 @@ namespace RBSoftSkkm.Internal
 
             return new UriBuilder
             {
-                Scheme = UseHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp,
+                Scheme = Uri.UriSchemeHttp,
                 Host = Host,
                 Port = Port,
                 Path = $"{ApiPath.TrimEnd('/')}/{path.TrimStart('/')}",
@@ -169,14 +161,6 @@ namespace RBSoftSkkm.Internal
 
             if (!string.IsNullOrEmpty(TerminalId))
                 request.Headers.TryAddWithoutValidation("TerminalId", TerminalId);
-        }
-
-        private void AddBasicAuth(HttpRequestMessage request)
-        {
-            var user = BasicAuthUser ?? "";
-            var password = BasicAuthPassword ?? "";
-            var bytes = Encoding.UTF8.GetBytes($"{user}:{password}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(bytes));
         }
     }
 }

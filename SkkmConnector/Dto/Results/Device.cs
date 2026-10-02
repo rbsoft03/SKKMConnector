@@ -47,13 +47,19 @@ namespace RBSoftSkkm
         /// Тип устройства
         /// </summary>
         [JsonPropertyName("DeviceClass")]
-        public int DeviceClass { get; set; }
+        public DeviceClass DeviceClass { get; set; }
 
         /// <summary>
         /// Название модели.
         /// </summary>
         [JsonPropertyName("Model")]
         public string? Model { get; set; }
+
+        /// <summary>
+        /// Название модели для отображения.
+        /// </summary>
+        [JsonPropertyName("ModelName")]
+        public string? ModelName { get; set; }
 
         /// <summary>
         /// Заводской номер ККТ.

@@ -36,4 +36,28 @@ public class Picture
     /// </summary>
     [JsonPropertyName("Height")]
     public int? Height { get; set; }
+
+    /// <summary>
+    /// Номер первой строки печати изображения.
+    /// </summary>
+    [JsonPropertyName("StartLineNumber")]
+    public int? StartLineNumber { get; set; }
+
+    /// <summary>
+    /// Номер последней строки печати изображения.
+    /// </summary>
+    [JsonPropertyName("EndLineNumber")]
+    public int? EndLineNumber { get; set; }
+
+    /// <summary>
+    /// Изображение загружено в память ККТ.
+    /// </summary>
+    [JsonPropertyName("IsUploaded")]
+    public bool? IsUploaded { get; set; }
+
+    /// <summary>
+    /// Изображение перезаписывается в памяти ККТ.
+    /// </summary>
+    [JsonPropertyName("Override")]
+    public bool? Override { get; set; }
 }

@@ -8,10 +8,10 @@ namespace RBSoftSkkm;
 public sealed class DeviceTaskInfo
 {
     /// <summary>
-    /// Тип задания.
+    /// Тип задания (<see cref="CheckType"/>).
     /// </summary>
     [JsonPropertyName("TaskType")]
-    public int TaskType { get; set; }
+    public CheckType TaskType { get; set; }
 
     /// <summary>
     /// Идентификатор документа.

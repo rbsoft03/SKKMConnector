@@ -5,13 +5,13 @@ namespace RBSoftSkkm;
 /// <summary>
 /// Разделительная линия в чеке:
 /// <para>
-/// LineStyle - Стиль. Используйте enum <see cref="LineStyle"/>
+/// LineStyle - Стиль.
 /// </para>
 /// </summary>
 public sealed class SeparatorLine : Position
 {
     /// <summary>
-    /// Стиль разделительной линии. Используйте enum <see cref="LineStyle"/>.
+    /// Стиль разделительной линии.
     /// </summary>
     [JsonPropertyName("lineStyle")]
     public LineStyle LineStyle { get; set; } = LineStyle.Solid;

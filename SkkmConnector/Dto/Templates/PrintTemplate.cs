@@ -27,10 +27,10 @@ public sealed class PrintTemplate
     /// Строки шаблона без обёртки: текст, штрихкоды, картинки, разделительные линии.
     /// </summary>
     [JsonIgnore]
-    public IReadOnlyList<PrintLine> Lines
+    public IReadOnlyList<PrintTemplateLine> Lines
         => TemplateItems
-            .Where(item => item.PrintLine != null)
-            .Select(item => item.PrintLine!)
+            .Where(item => item.PrintTemplateLine != null)
+            .Select(item => item.PrintTemplateLine!)
             .ToArray();
 
     /// <summary>

@@ -36,5 +36,11 @@ namespace RBSoftSkkm
         /// </summary>
         [JsonPropertyName("Adding")]
         public RegData? Adding { get; set; }
+
+        /// <summary>
+        /// Разбивка по ставкам НДС (ключ — ставка, значение — сумма налога).
+        /// </summary>
+        [JsonPropertyName("Tax")]
+        public Dictionary<string, decimal>? Tax { get; set; }
     }
 }

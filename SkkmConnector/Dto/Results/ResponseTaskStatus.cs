@@ -29,7 +29,7 @@ public sealed class ResponseTaskStatus
     /// Статус отправки: 0 — задача новая, в очереди; 1 — отправлена на выполнение; 2 — удачно обработана; −1 — вернулась с ошибкой.
     /// </summary>
     [JsonPropertyName("SentToPrint")]
-    public int SentToPrint { get; set; }
+    public QueueTaskStatus SentToPrint { get; set; }
 
     /// <summary>
     /// Позиция задания в очереди на момент запроса. −1 — задание уже покинуло очередь.
@@ -62,10 +62,10 @@ public sealed class ResponseTaskStatus
     public int DocNumber { get; set; }
 
     /// <summary>
-    /// Тип чека
+    /// Тип чека (<see cref="CheckType"/>).
     /// </summary>
     [JsonPropertyName("TaskType")]
-    public int TaskType { get; set; }
+    public CheckType TaskType { get; set; }
 
     /// <summary>
     /// Фискальный признак документа. Заполняется только для фискальных документов.

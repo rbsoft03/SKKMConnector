@@ -8,6 +8,42 @@ namespace RBSoftSkkm
     public class Fn
     {
         /// <summary>
+        /// Исполнение ФН.
+        /// </summary>
+        [JsonPropertyName("Execution")]
+        public string? Execution { get; set; }
+
+        /// <summary>
+        /// ФН содержит URI сервера обновления ключей (ОКП).
+        /// </summary>
+        [JsonPropertyName("FnContainsKeysUpdaterServerUri")]
+        public bool FnContainsKeysUpdaterServerUri { get; set; }
+
+        /// <summary>
+        /// Количество оставшихся регистраций.
+        /// </summary>
+        [JsonPropertyName("FiscalizationsFree")]
+        public int FiscalizationsFree { get; set; }
+
+        /// <summary>
+        /// Номер документа регистрации фискального накопителя.
+        /// </summary>
+        [JsonPropertyName("FiscalizationDocumentNumber")]
+        public string? FiscalizationDocumentNumber { get; set; }
+
+        /// <summary>
+        /// Фаза жизни ФН: init, configured, fiscalMode, postFiscalMode, accessArchive, unknown.
+        /// </summary>
+        [JsonPropertyName("LivePhase")]
+        public string? LivePhase { get; set; }
+
+        /// <summary>
+        /// Версия ФН.
+        /// </summary>
+        [JsonPropertyName("Version")]
+        public string? Version { get; set; }
+
+        /// <summary>
         /// Количество проведённых фискализаций
         /// </summary>
         [JsonPropertyName("FiscalizationsCount")]

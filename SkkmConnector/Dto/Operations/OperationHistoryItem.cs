@@ -14,16 +14,22 @@ public sealed class OperationHistoryItem
     public DateTime Time { get; set; }
 
     /// <summary>
-    /// Код состояния.
+    /// Состояние документа в очереди печати.
     /// </summary>
     [JsonPropertyName("State")]
-    public int State { get; set; }
+    public DocumentPrintState State { get; set; }
 
     /// <summary>
     /// Описание события.
     /// </summary>
     [JsonPropertyName("Description")]
     public string Description { get; set; } = "";
+
+    /// <summary>
+    /// Дополнительная информация о событии.
+    /// </summary>
+    [JsonPropertyName("Info")]
+    public string Info { get; set; } = "";
 
     /// <summary>
     /// Состояние документа на этом шаге.
